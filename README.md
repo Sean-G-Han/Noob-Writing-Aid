@@ -1,6 +1,6 @@
 # Noob Writing Assistant: Creative Writing Critic (Beta)
 
-<img width="1600" height="789" alt="image" src="https://github.com/user-attachments/assets/7750bb98-3aee-4d9d-8fcb-5944a0dc8c54" />
+<img width="1876" height="900" alt="image" src="https://github.com/user-attachments/assets/dc6d0759-9add-4cf4-a4b3-e78a93bcaf00" />
 
 **Noob Writing Aid** is an analytical writing assistant designed to help authors identify common prose pitfalls such as "filter words," "telling vs. showing," and "monotonous pacing." 
 
