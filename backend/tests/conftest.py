@@ -1,0 +1,20 @@
+import sqlite3
+import pytest
+from database.init_db import init_db
+
+@pytest.fixture(scope="session") # YH Notes: Basically like a wrapper for the test functions
+def conn(): #called whenever conn is used as an argument in a test function
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    
+    conn.execute("PRAGMA foreign_keys = ON")
+    init_db(conn, schema_path="database/schema.sql")
+
+    yield conn # YH Notes: returns and waits for test function to finish
+    conn.close()
+
+@pytest.fixture(autouse=True) # YH Notes: runs before each test function without needing to be called
+def reset_db(conn):
+    yield # makes staments run AFTER
+    conn.execute("DELETE FROM novels")
+    conn.commit()
