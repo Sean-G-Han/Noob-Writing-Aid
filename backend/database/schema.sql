@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS characters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     common_name TEXT NOT NULL,
     description TEXT DEFAULT '',
-    UNIQUE (novel_id, common_name)
+    UNIQUE (common_name)
 );
 
 CREATE TABLE IF NOT EXISTS character_adjectives (
