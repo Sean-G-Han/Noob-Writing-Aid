@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS chapter_to_character (
 CREATE TABLE IF NOT EXISTS characters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     common_name TEXT NOT NULL,
-    description TEXT DEFAULT '',
     UNIQUE (common_name)
 );
 
@@ -49,9 +48,6 @@ CREATE TABLE IF NOT EXISTS character_pronouns (
 CREATE TABLE IF NOT EXISTS character_alternative_names (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     character_id INTEGER NOT NULL,
-    novel_id INTEGER NOT NULL,
     alternative_name TEXT NOT NULL,
     FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
-    FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE,
-    UNIQUE (novel_id, alternative_name)
 );
