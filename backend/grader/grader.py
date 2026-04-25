@@ -92,6 +92,3 @@ if __name__ == "__main__":
     preprocessor.preprocess(doc)
     grader = Grader()
     print(grader.grade_text(doc))
-
-    print("\nCharacter Registry State:")
-    print(char_reg.to_json())
