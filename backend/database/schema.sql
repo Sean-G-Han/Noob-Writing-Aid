@@ -27,8 +27,7 @@ CREATE TABLE IF NOT EXISTS chapter_to_character (
 
 CREATE TABLE IF NOT EXISTS characters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    common_name TEXT NOT NULL,
-    UNIQUE (common_name)
+    common_name TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS character_adjectives (
