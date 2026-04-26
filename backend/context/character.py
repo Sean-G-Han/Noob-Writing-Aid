@@ -1,5 +1,5 @@
 from context.object import Object
-from nlp import add_character_pattern, get_nlp_model
+from util import add_character_pattern, get_nlp_model
 
 
 class CharacterRegistry:

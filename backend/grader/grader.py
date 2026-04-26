@@ -6,7 +6,7 @@ from rules.word_rules import *
 from rules.sentence_rules import *
 from rules.paragraph_rules import *
 from rules.window_rules import *
-from nlp import get_nlp_model
+from util import get_nlp_model
 
 WORD_RULES: list[WordRule] = [
     AdverbRule(),
