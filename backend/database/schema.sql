@@ -27,21 +27,24 @@ CREATE TABLE IF NOT EXISTS chapter_to_character (
 
 CREATE TABLE IF NOT EXISTS characters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    common_name TEXT NOT NULL
+    common_name TEXT NOT NULL,
+    description TEXT DEFAULT ''
 );
 
 CREATE TABLE IF NOT EXISTS character_adjectives (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     character_id INTEGER NOT NULL,
     adjective TEXT NOT NULL,
-    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
+    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+    UNIQUE (character_id, adjective)
 );
 
 CREATE TABLE IF NOT EXISTS character_pronouns (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     character_id INTEGER NOT NULL,
     pronoun TEXT NOT NULL,
-    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE
+    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+    UNIQUE (character_id, pronoun)
 );
 
 CREATE TABLE IF NOT EXISTS character_alternative_names (
@@ -49,4 +52,5 @@ CREATE TABLE IF NOT EXISTS character_alternative_names (
     character_id INTEGER NOT NULL,
     alternative_name TEXT NOT NULL,
     FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+    UNIQUE (character_id, alternative_name)
 );
