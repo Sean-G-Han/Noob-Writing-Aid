@@ -1,9 +1,8 @@
 from sqlite3 import Connection
 from .db import get_connection
-from .cursor_singleton import CursorSingleton
 
 def init_db(conn: Connection, schema_path="database/schema.sql"):
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
 
     with open(schema_path, "r") as f:
         cursor.executescript(f.read())
@@ -11,7 +10,7 @@ def init_db(conn: Connection, schema_path="database/schema.sql"):
     conn.commit()
 
 def reset_db(conn: Connection, schema_path="database/schema.sql"):
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
 
     cursor.executescript("""
         DROP TABLE IF EXISTS character_alternative_names;

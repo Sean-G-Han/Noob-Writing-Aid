@@ -3,7 +3,6 @@ import pytest
 
 from database.novel_db import create_novel, delete_novel
 from database.chapter_db import *
-from database.cursor_singleton import CursorSingleton
 
 def test_create_chapter(conn):
     novel_id = create_novel(conn, "ABC")
@@ -113,7 +112,7 @@ def test_update_chapter_content(conn, tmp_path):
 
     assert os.path.exists(file_path)
 
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute("SELECT raw_file_path FROM chapters WHERE id = ?", (chapter_id,))
     row = cursor.fetchone()
     assert row["raw_file_path"] == file_path

@@ -6,7 +6,6 @@ from database.novel_db import create_novel
 from database.chapter_db import get_chapter, update_chapter_content, get_chapter_content, create_chapter
 from database.db import get_connection
 from sqlite3 import Connection
-from database.cursor_singleton import CursorSingleton
 
 app = FastAPI()
 
@@ -23,7 +22,7 @@ class TextRequest(BaseModel):
 
 # TODO: Remoove this temp helper gunction once the other APT are added
 def get_or_create_default_chapter(conn: Connection) -> int:
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute("SELECT id FROM novels LIMIT 1")
     row = cursor.fetchone()
 

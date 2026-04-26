@@ -2,7 +2,6 @@ from typing import Optional
 from sqlite3 import Connection
 import os
 import hashlib
-from .cursor_singleton import CursorSingleton
 
 BASE_DIR = "data/raw"
 
@@ -18,7 +17,7 @@ def _row_to_dict(row) -> dict:
     }
 
 def create_chapter(conn: Connection, novel_id: int, chapter_number: int, title: str) -> int | None:
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)",
         (novel_id, chapter_number, title)
@@ -30,7 +29,7 @@ def get_chapter(conn: Connection,
                 chapter_id: int | None = None, 
                 novel_id: int | None = None, 
                 chapter_number: int | None = None) -> Optional[dict]:
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     if chapter_id is not None:
         cursor.execute("SELECT * FROM chapters WHERE id = ?", (chapter_id,))
     elif novel_id is not None and chapter_number is not None:
@@ -41,13 +40,13 @@ def get_chapter(conn: Connection,
     return _row_to_dict(row) if row else None
 
 def get_chapters_by_novel(conn: Connection, novel_id: int) -> list[dict]:
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute("SELECT * FROM chapters WHERE novel_id = ?", (novel_id,))
     rows = cursor.fetchall()
     return [_row_to_dict(row) for row in rows]
 
 def update_chapter(conn: Connection, chapter_id: int, title: str) -> bool:
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute(
         "UPDATE chapters SET title = ? WHERE id = ?",
         (title, chapter_id)
@@ -68,7 +67,7 @@ def update_chapter_content(conn: Connection,
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
 
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute(
         """
         UPDATE chapters
@@ -82,7 +81,7 @@ def update_chapter_content(conn: Connection,
     return file_path
 
 def get_chapter_content(conn: Connection, chapter_id: int) -> Optional[str]:
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute("SELECT raw_file_path FROM chapters WHERE id = ?", (chapter_id,))
     row = cursor.fetchone()
     if not row or not row["raw_file_path"]:
@@ -92,7 +91,7 @@ def get_chapter_content(conn: Connection, chapter_id: int) -> Optional[str]:
         return f.read()
 
 def delete_chapter(conn: Connection, chapter_id: int) -> bool:
-    cursor = CursorSingleton.get_instance(conn)
+    cursor = conn.cursor()
     cursor.execute("DELETE FROM chapters WHERE id = ?", (chapter_id,))
     conn.commit()
     return cursor.rowcount > 0
