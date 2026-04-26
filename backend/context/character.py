@@ -1,124 +1,122 @@
 from context.object import Object
-from util import add_character_pattern, get_nlp_model
 
 
-class CharacterRegistry:
+# class CharacterRegistry:
 
-    MALE_PRONOUNS = {"he", "him", "his"}
-    FEMALE_PRONOUNS = {"she", "her", "hers"}
-    NEUTRAL_PRONOUNS = {"it", "its"}
-    ALL_PRONOUNS = MALE_PRONOUNS | FEMALE_PRONOUNS | NEUTRAL_PRONOUNS
+#     MALE_PRONOUNS = {"he", "him", "his"}
+#     FEMALE_PRONOUNS = {"she", "her", "hers"}
+#     NEUTRAL_PRONOUNS = {"it", "its"}
+#     ALL_PRONOUNS = MALE_PRONOUNS | FEMALE_PRONOUNS | NEUTRAL_PRONOUNS
 
-    def __init__(self):
-        self.characters: dict[str, Character] = {}
-        self.pronoun_map: dict[str, set[Character]] = {}
-        self.recent_encounter: dict[str, list[tuple[int, Character]]] = {}
+#     def __init__(self):
+#         self.characters: dict[str, Character] = {}
+#         self.pronoun_map: dict[str, set[Character]] = {}
+#         self.recent_encounter: dict[str, list[tuple[int, Character]]] = {}
 
-    def create_character(self,
-                         common_name: str,
-                         adjectives: set[str] | None = None,
-                         description: str = "",
-                         pronouns: set[str] | None = None,
-                         alternative_names: set[str] | None = None) -> "Character":
+#     def create_character(self,
+#                          common_name: str,
+#                          adjectives: set[str] | None = None,
+#                          description: str = "",
+#                          pronouns: set[str] | None = None,
+#                          alternative_names: set[str] | None = None) -> "Character":
 
-        char_names = {common_name.lower()}
-        if alternative_names:
-            char_names |= {name.lower() for name in alternative_names}
+#         char_names = {common_name.lower()}
+#         if alternative_names:
+#             char_names |= {name.lower() for name in alternative_names}
 
-        existing_names = set(self.characters.keys())
+#         existing_names = set(self.characters.keys())
 
-        if char_names & existing_names:
-            raise ValueError(
-                f"Character with name(s) {char_names & existing_names} already exists."
-            )
+#         if char_names & existing_names:
+#             raise ValueError(
+#                 f"Character with name(s) {char_names & existing_names} already exists."
+#             )
 
-        char = Character(
-            common_name=common_name,
-            adjectives=adjectives,
-            description=description,
-            pronouns=pronouns,
-            alternative_names=alternative_names
-        )
+#         char = Character(
+#             common_name=common_name,
+#             adjectives=adjectives,
+#             description=description,
+#             pronouns=pronouns,
+#             alternative_names=alternative_names
+#         )
 
-        self._register(char)
-        return char
+#         self._register(char)
+#         return char
 
-    def _register(self, character: "Character"):
-        for name in character.names:
-            self.characters[name] = character
-            add_character_pattern(get_nlp_model(), name)
+#     def _register(self, character: "Character"):
+#         for name in character.names:
+#             self.characters[name] = character
 
-        for p in character.pronouns:
-            if p not in self.pronoun_map:
-                self.pronoun_map[p] = set()
-            self.pronoun_map[p].add(character)
+#         for p in character.pronouns:
+#             if p not in self.pronoun_map:
+#                 self.pronoun_map[p] = set()
+#             self.pronoun_map[p].add(character)
     
-    def add_recent_encounter(self, name: str, sentence_index: int):
-        char = self.characters.get(name.lower())
-        if not char:
-            return
+#     def add_recent_encounter(self, name: str, sentence_index: int):
+#         char = self.characters.get(name.lower())
+#         if not char:
+#             return
 
-        for p in char.pronouns:
-            self.recent_encounter.setdefault(p, [])
-            self.recent_encounter[p].append((sentence_index, char))
+#         for p in char.pronouns:
+#             self.recent_encounter.setdefault(p, [])
+#             self.recent_encounter[p].append((sentence_index, char))
 
-    def get_recent_encounters(self,
-                              pronoun: str,
-                              sentence_index: int) -> set["Character"]:
-                            # Sentence index might be used later IDK
-        stack = self.recent_encounter.get(pronoun.lower(), [])
+#     def get_recent_encounters(self,
+#                               pronoun: str,
+#                               sentence_index: int) -> set["Character"]:
+#                             # Sentence index might be used later IDK
+#         stack = self.recent_encounter.get(pronoun.lower(), [])
 
-        if not stack:
-            return set()
+#         if not stack:
+#             return set()
 
-        result = set()
-        target_sentence = None
+#         result = set()
+#         target_sentence = None
 
-        for s, char in reversed(stack):
-            if target_sentence is None:
-                target_sentence = s
+#         for s, char in reversed(stack):
+#             if target_sentence is None:
+#                 target_sentence = s
 
-            if s != target_sentence:
-                break
+#             if s != target_sentence:
+#                 break
 
-            result.add(char)
+#             result.add(char)
 
-        return result
+#         return result
 
-    def is_character(self, name: str) -> bool:
-        return name.lower() in self.characters
+#     def is_character(self, name: str) -> bool:
+#         return name.lower() in self.characters
 
-    def get_character(self, name: str) -> "Character":
-        return self.characters.get(name.lower())
+#     def get_character(self, name: str) -> "Character":
+#         return self.characters.get(name.lower())
 
-    def to_dict(self) -> dict:
-        seen = set()
-        characters = []
+#     def to_dict(self) -> dict:
+#         seen = set()
+#         characters = []
 
-        for char in self.characters.values():
-            if char.common_name not in seen:
-                seen.add(char.common_name)
-                characters.append(char.to_dict())
+#         for char in self.characters.values():
+#             if char.common_name not in seen:
+#                 seen.add(char.common_name)
+#                 characters.append(char.to_dict())
 
-        return {"characters": characters}
+#         return {"characters": characters}
 
-    @staticmethod
-    def from_dict(data: dict) -> "CharacterRegistry":
-        registry = CharacterRegistry()
+#     @staticmethod
+#     def from_dict(data: dict) -> "CharacterRegistry":
+#         registry = CharacterRegistry()
 
-        for char_data in data["characters"]:
-            registry.create_character(
-                common_name=char_data["common_name"],
-                adjectives=set(char_data.get("adjectives", [])),
-                description=char_data.get("description", ""),
-                pronouns=set(char_data.get("pronouns", [])),
-                alternative_names=set(char_data.get("alternative_names", []))
-            )
+#         for char_data in data["characters"]:
+#             registry.create_character(
+#                 common_name=char_data["common_name"],
+#                 adjectives=set(char_data.get("adjectives", [])),
+#                 description=char_data.get("description", ""),
+#                 pronouns=set(char_data.get("pronouns", [])),
+#                 alternative_names=set(char_data.get("alternative_names", []))
+#             )
 
-        return registry
+#         return registry
 
-    def __repr__(self):
-        return f"CharacterRegistry({list(self.characters.keys())})"
+#     def __repr__(self):
+#         return f"CharacterRegistry({list(self.characters.keys())})"
 
 
 class Character(Object):

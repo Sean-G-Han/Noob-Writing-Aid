@@ -89,19 +89,10 @@ class Paragraph(Component):
 
 class Document:
     def __init__(self, text: str, nlp_model):
-        self
         self.doc: Doc = nlp_model(text)
-        self.merge_characters()
         self.paragraphs: list[Paragraph] = []
         self._split_paragraphs()
         self._word_cache: list[tuple[Word, Sentence, Paragraph]] | None = None
-
-    def merge_characters(self):
-        with self.doc.retokenize() as retokenizer:
-            for ent in self.doc.ents:
-                if ent.label_ == "CHARACTER":
-                    retokenizer.merge(ent)
-        return self.doc
 
     def _split_paragraphs(self):
         start = 0

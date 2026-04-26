@@ -1,6 +1,4 @@
 from components.components import Word, Document
-from context.character import CharacterRegistry
-from grader.preprocessor import Preprocessor
 from collections import deque
 from rules.word_rules import *
 from rules.sentence_rules import *
@@ -83,12 +81,6 @@ class Grader:
 
 if __name__ == "__main__":
     sample_text = "She is huge. Alice likes Dory. She says that she is her best friend. But Sam thinks that Miss Wonderful is annoying. He doesn't like her."
-    char_reg = CharacterRegistry()
-    char_reg.create_character("Alice", [], "", char_reg.FEMALE_PRONOUNS, ["Miss Wonderful"])
-    char_reg.create_character("Dory", [], "", char_reg.FEMALE_PRONOUNS)
-    char_reg.create_character("Sam", [], "", char_reg.MALE_PRONOUNS)
     doc = Document(sample_text, get_nlp_model())
-    preprocessor = Preprocessor(char_reg)
-    preprocessor.preprocess(doc)
     grader = Grader()
     print(grader.grade_text(doc))
