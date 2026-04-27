@@ -53,12 +53,7 @@ def grade(req: TextRequest):
 
     content = get_chapter_content(conn, chapter_id)
 
-    # refactor all these boiler later
-    char_reg = CharacterRegistry()
-    grader = Grader()
     doc = Document(content, get_nlp_model())
-    preprocessor = Preprocessor(char_reg)
-    preprocessor.preprocess(doc)
     annotated = grader.grade_text(doc)
 
     conn.close()

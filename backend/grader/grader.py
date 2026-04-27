@@ -1,12 +1,11 @@
 from components.components import Word, Document
-from context.character import CharacterRegistry
-from grader.preprocessor import Preprocessor
 from collections import deque
 from rules.word_rules import *
 from rules.sentence_rules import *
 from rules.paragraph_rules import *
 from rules.window_rules import *
 from util import get_nlp_model
+from context.character import CharacterRegistry, Character
 
 WORD_RULES: list[WordRule] = [
     AdverbRule(),
@@ -82,13 +81,35 @@ class Grader:
         return str(doc)
 
 if __name__ == "__main__":
-    sample_text = "She is huge. Alice likes Dory. She says that she is her best friend. But Sam thinks that Miss Wonderful is annoying. He doesn't like her."
-    char_reg = CharacterRegistry()
-    char_reg.create_character("Alice", [], "", char_reg.FEMALE_PRONOUNS, ["Miss Wonderful"])
-    char_reg.create_character("Dory", [], "", char_reg.FEMALE_PRONOUNS)
-    char_reg.create_character("Sam", [], "", char_reg.MALE_PRONOUNS)
-    doc = Document(sample_text, get_nlp_model())
-    preprocessor = Preprocessor(char_reg)
-    preprocessor.preprocess(doc)
+    sample_text = "She is huge. Alice likes Dory. She says that she is her best friend. But Sam thinks that Miss Wonderful is annoying. He doesn't like her. Miss Wonderful is a huge woman"
+    char_registry = CharacterRegistry()
+    char_registry.register(Character(
+        common_name="Alice",
+        adjectives={"huge"},
+        description="Alice is a huge woman",
+        pronouns={"she", "her", "hers"},
+        alternative_names={"Miss Wonderful"}
+    ))
+    char_registry.register(Character(
+        common_name="Dory",
+        adjectives=set(),
+        description="Dory is a fish",
+        pronouns={"she", "her", "hers"},
+        alternative_names=set()
+    ))
+    char_registry.register(Character(
+        common_name="Sam",
+        adjectives=set(),
+        description="Sam is a man",
+        pronouns={"he", "him", "his"},
+        alternative_names=set()
+    ))
+    doc = Document(sample_text, get_nlp_model(), char_registry)
+
+    for para in doc.paragraphs:
+        for sent in para.sentences:
+            for word in sent.words:
+                print("-", word.text)
+
     grader = Grader()
     print(grader.grade_text(doc))

@@ -1,125 +1,61 @@
 from context.object import Object
-from util import add_character_pattern, get_nlp_model
 
+class PronounEncounter:
+    def __init__(self):
+        self.sentence_index: int | None = None
+        self.characters: list["Character"] = []
+
+    def add(self, sentence_index: int, character: "Character"):
+        if self.sentence_index != sentence_index:
+            self.sentence_index = sentence_index
+            self.characters.clear()
+
+        self.characters.append(character)
+
+    def get_characters(self) -> list["Character"]:
+        return self.characters
+
+    def is_ambiguous(self) -> bool:
+        return len(self.characters) > 1
 
 class CharacterRegistry:
-
-    MALE_PRONOUNS = {"he", "him", "his"}
-    FEMALE_PRONOUNS = {"she", "her", "hers"}
-    NEUTRAL_PRONOUNS = {"it", "its"}
-    ALL_PRONOUNS = MALE_PRONOUNS | FEMALE_PRONOUNS | NEUTRAL_PRONOUNS
-
     def __init__(self):
-        self.characters: dict[str, Character] = {}
-        self.pronoun_map: dict[str, set[Character]] = {}
-        self.recent_encounter: dict[str, list[tuple[int, Character]]] = {}
-
-    def create_character(self,
-                         common_name: str,
-                         adjectives: set[str] | None = None,
-                         description: str = "",
-                         pronouns: set[str] | None = None,
-                         alternative_names: set[str] | None = None) -> "Character":
-
-        char_names = {common_name.lower()}
-        if alternative_names:
-            char_names |= {name.lower() for name in alternative_names}
-
-        existing_names = set(self.characters.keys())
-
-        if char_names & existing_names:
-            raise ValueError(
-                f"Character with name(s) {char_names & existing_names} already exists."
-            )
-
-        char = Character(
-            common_name=common_name,
-            adjectives=adjectives,
-            description=description,
-            pronouns=pronouns,
-            alternative_names=alternative_names
-        )
-
-        self._register(char)
-        return char
-
-    def _register(self, character: "Character"):
-        for name in character.names:
-            self.characters[name] = character
-            add_character_pattern(get_nlp_model(), name)
-
-        for p in character.pronouns:
-            if p not in self.pronoun_map:
-                self.pronoun_map[p] = set()
-            self.pronoun_map[p].add(character)
+        self.name_to_characters_map: dict[str, "Character"] = {}
+        self.pronoun_to_characters_map: dict[str, set["Character"]] = {}
+        self.recent_encounter: dict[str, PronounEncounter] = {}
     
-    def add_recent_encounter(self, name: str, sentence_index: int):
-        char = self.characters.get(name.lower())
-        if not char:
+    def register(self, character: "Character"):
+        for name in character.names:
+            self.name_to_characters_map[name.lower()] = character
+
+        for pronoun in character.pronouns:
+            self.pronoun_to_characters_map.setdefault(pronoun, set()).add(character)
+
+    def get_names(self) -> list[str]:
+        return list(self.name_to_characters_map.keys())
+    
+    def _is_character(self, text: str) -> bool:
+        return text.lower() in self.name_to_characters_map
+    
+    def get_character(self, name: str) -> "Character":
+        return self.name_to_characters_map.get(name.lower())
+    
+    def get_recent_characters_for_pronoun(self, pronoun: str) -> list["Character"]:
+        encounter = self.recent_encounter.get(pronoun.lower())
+        return encounter.get_characters() if encounter else []
+    
+    def _encounter_character(self, name: str, sentence_index: int) -> None:
+        character = self.name_to_characters_map.get(name.lower())
+        if not character:
             return
 
-        for p in char.pronouns:
-            self.recent_encounter.setdefault(p, [])
-            self.recent_encounter[p].append((sentence_index, char))
+        for pronoun in character.pronouns:
+            encounter = self.recent_encounter.setdefault(pronoun, PronounEncounter())
+            encounter.add(sentence_index, character)
 
-    def get_recent_encounters(self,
-                              pronoun: str,
-                              sentence_index: int) -> set["Character"]:
-                            # Sentence index might be used later IDK
-        stack = self.recent_encounter.get(pronoun.lower(), [])
-
-        if not stack:
-            return set()
-
-        result = set()
-        target_sentence = None
-
-        for s, char in reversed(stack):
-            if target_sentence is None:
-                target_sentence = s
-
-            if s != target_sentence:
-                break
-
-            result.add(char)
-
-        return result
-
-    def is_character(self, name: str) -> bool:
-        return name.lower() in self.characters
-
-    def get_character(self, name: str) -> "Character":
-        return self.characters.get(name.lower())
-
-    def to_dict(self) -> dict:
-        seen = set()
-        characters = []
-
-        for char in self.characters.values():
-            if char.common_name not in seen:
-                seen.add(char.common_name)
-                characters.append(char.to_dict())
-
-        return {"characters": characters}
-
-    @staticmethod
-    def from_dict(data: dict) -> "CharacterRegistry":
-        registry = CharacterRegistry()
-
-        for char_data in data["characters"]:
-            registry.create_character(
-                common_name=char_data["common_name"],
-                adjectives=set(char_data.get("adjectives", [])),
-                description=char_data.get("description", ""),
-                pronouns=set(char_data.get("pronouns", [])),
-                alternative_names=set(char_data.get("alternative_names", []))
-            )
-
-        return registry
-
-    def __repr__(self):
-        return f"CharacterRegistry({list(self.characters.keys())})"
-
+    def _is_ambiguous_pronoun(self, pronoun: str) -> bool:
+        encounter = self.recent_encounter.get(pronoun.lower())
+        return encounter.is_ambiguous() if encounter else False
 
 class Character(Object):
     def __init__(self,
