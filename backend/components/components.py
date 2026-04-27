@@ -142,17 +142,26 @@ class Document:
         if not self.char_registry:
             return
         
-        for paragraph in self.paragraphs:
-            for sentence_idx, sentence in enumerate(paragraph.sentences):
-                for word in sentence.words:
-                    if self.char_registry._is_character(word.text):
-                        self.char_registry._encounter_character(word.text, sentence_idx)
-                        character = self.char_registry.get_character(word.text)
-                        word.char_ref.add(character.common_name)
-                    elif word.pos == "PRON":
-                        characters = self.char_registry.get_recent_characters_for_pronoun(word.text)
-                        for char in characters:
-                            word.char_ref.add(char.common_name)
+        sentence_idx = -1
+
+        for item_type, component in self.iter_words_with_context():
+
+            if item_type == "SENT":
+                sentence_idx += 1
+                continue
+
+            if item_type != "WORD":
+                continue
+
+            word: Word = component
+            if self.char_registry._is_character(word.text):
+                self.char_registry._encounter_character(word.text, sentence_idx)
+                character = self.char_registry.get_character(word.text)
+                word.char_ref.add(character.common_name)
+            elif word.pos == "PRON":
+                characters = self.char_registry.get_recent_characters_for_pronoun(word.text)
+                for char in characters:
+                    word.char_ref.add(char.common_name)
                          
 
     def iter_words_with_context(self) -> Generator[tuple[str, Component], None, None]:
