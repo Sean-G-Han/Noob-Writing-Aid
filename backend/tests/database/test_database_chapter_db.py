@@ -85,25 +85,36 @@ def test_get_chapters_by_novel(conn):
 
     assert len(chapters) == 2
 
-def test_update_chapter(conn):
+def test_update_chapter_title(conn):
     novel_id = create_novel(conn, "ABC")
     chapter_id = create_chapter(conn, novel_id, 1, "Chapter 1")
 
-    result = update_chapter(conn, chapter_id, "Updated Chapter")
+    result = update_chapter(conn, chapter_id, title = "Updated Chapter")
 
     updated = get_chapter(conn, chapter_id)
 
     assert result is True
     assert updated["title"] == "Updated Chapter"
 
+def test_update_chapter_number(conn):
+    novel_id = create_novel(conn, "ABC")
+    chapter_id = create_chapter(conn, novel_id, 1, "Chapter 1")
+
+    result = update_chapter(conn, chapter_id, chapter_number=2)
+
+    updated = get_chapter(conn, chapter_id)
+
+    assert result is True
+    assert updated["chapter_number"] == 2
+
 #YH Note: tmp_path is a pytest fixture that provides a temporary directory for testing file operations.
-def test_update_chapter_content(conn, tmp_path):
+def test_save_chapter_content(conn, tmp_path):
     novel_id = create_novel(conn, "ABC")
     chapter_id = create_chapter(conn, novel_id=novel_id, chapter_number=1, title="Test")
 
     content = "Hello world"
 
-    file_path = update_chapter_content(
+    file_path, _ = save_chapter_content(
         conn,
         chapter_id,
         content,
@@ -117,30 +128,30 @@ def test_update_chapter_content(conn, tmp_path):
     row = cursor.fetchone()
     assert row["raw_file_path"] == file_path
 
-def test_get_chapter_content(conn, tmp_path):
+def test_load_chapter_content(conn, tmp_path):
     novel_id = create_novel(conn, "ABC")
     chapter_id = create_chapter(conn, novel_id, 1, "Test")
 
     content = "Some content"
-    update_chapter_content(conn, chapter_id, content, base_dir=tmp_path)
+    save_chapter_content(conn, chapter_id, content, base_dir=tmp_path)
 
-    result = get_chapter_content(conn, chapter_id)
+    result = load_chapter_content(conn, chapter_id)
 
     assert result == content
 
-def test_get_chapter_content_no_file(conn):
+def test_load_chapter_content_no_file(conn):
     novel_id = create_novel(conn, "ABC")
     chapter_id = create_chapter(conn, novel_id, 1, "Test")
-    result = get_chapter_content(conn, chapter_id)
+    result = load_chapter_content(conn, chapter_id)
     assert result is None
 
-def test_get_chapter_content_file_missing(conn, tmp_path):
+def test_load_chapter_content_file_missing(conn, tmp_path):
     novel_id = create_novel(conn, "ABC")
     chapter_id = create_chapter(conn, novel_id, 1, "Test")
     content = "Hello"
-    file_path = update_chapter_content(conn, chapter_id, content, base_dir=tmp_path)
+    file_path, _ = save_chapter_content(conn, chapter_id, content, base_dir=tmp_path)
     os.remove(file_path)
-    pytest.raises(FileNotFoundError, get_chapter_content, conn, chapter_id)
+    pytest.raises(FileNotFoundError, load_chapter_content, conn, chapter_id)
 
 def test_delete_chapter(conn):
     novel_id = create_novel(conn, "ABC")

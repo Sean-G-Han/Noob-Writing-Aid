@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from grader.grader import *
 from database.novel_db import create_novel
-from database.chapter_db import get_chapter, update_chapter_content, get_chapter_content, create_chapter
+from database.chapter_db import get_chapter, save_chapter_content, load_chapter_content, create_chapter
 from database.db import get_connection
 from sqlite3 import Connection
 
@@ -45,13 +45,13 @@ def grade(req: TextRequest):
 
     chapter_id = get_or_create_default_chapter(conn)
 
-    update_chapter_content(
+    save_chapter_content(
         conn,
         chapter_id,
         req.text,
     )
 
-    content = get_chapter_content(conn, chapter_id)
+    content = load_chapter_content(conn, chapter_id)
 
     # refactor all these boiler later
     char_reg = CharacterRegistry()

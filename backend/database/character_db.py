@@ -39,7 +39,7 @@ def create_character(conn: Connection,
     return cursor.lastrowid
 
 # REVIEW: Should get return Character object directly?
-def get_character_by_id(conn: Connection, character_id: int) -> Optional[dict]:
+def get_character(conn: Connection, character_id: int) -> Optional[dict]:
     cursor = conn.cursor()
     cursor.execute("""
         SELECT * FROM characters
@@ -84,33 +84,49 @@ def update_character(conn: Connection, character_id: int,
                      chapters: list[int] | None = None) -> bool:
     
     cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE characters
-        SET common_name = ?, description = ?
-        WHERE id = ?
-    """, (common_name, description, character_id))
 
-    # TODO: Very inefficient to remove all and re-add. Should only update the differences. 
-    # But this is simpler to implement for now.
+    updates = []
+    params = []
+
+    if common_name is not None:
+        updates.append("common_name = ?")
+        params.append(common_name)
+
+    if description is not None:
+        updates.append("description = ?")
+        params.append(description)
+
+    if updates:
+        query = f"""
+            UPDATE characters
+            SET {", ".join(updates)}
+            WHERE id = ?
+        """
+        params.append(character_id)
+        cursor.execute(query, params)
+
     if adjectives is not None:
         _remove_all_character_adjectives(conn, character_id)
-        for adjective in adjectives:
-            _add_character_adjective(conn, character_id, adjective)
+        for adj in adjectives:
+            _add_character_adjective(conn, character_id, adj)
+
     if pronouns is not None:
         _remove_all_character_pronouns(conn, character_id)
-        for pronoun in pronouns:
-            _add_character_pronoun(conn, character_id, pronoun)
+        for pro in pronouns:
+            _add_character_pronoun(conn, character_id, pro)
+
     if alternative_names is not None:
         _remove_all_character_alt_names(conn, character_id)
-        for alternative_name in alternative_names:
-            _add_character_alt_name(conn, character_id, alternative_name)
+        for name in alternative_names:
+            _add_character_alt_name(conn, character_id, name)
+
     if chapters is not None:
         _unlink_all_character_from_chapter(conn, character_id)
-        for chapter_id in chapters:
-            _link_character_to_chapter(conn, character_id, chapter_id)
+        for ch_id in chapters:
+            _link_character_to_chapter(conn, character_id, ch_id)
 
     conn.commit()
-    
+
     return cursor.rowcount > 0
 
 def delete_character(conn: Connection, character_id: int) -> bool:

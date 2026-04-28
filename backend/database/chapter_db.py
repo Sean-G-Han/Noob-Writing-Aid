@@ -16,7 +16,10 @@ def _row_to_dict(row) -> dict:
         "hash": row["hash"]
     }
 
-def create_chapter(conn: Connection, novel_id: int, chapter_number: int, title: str) -> int | None:
+def create_chapter(conn: Connection, 
+                   novel_id: int, 
+                   chapter_number: int, 
+                   title: str) -> int | None:
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)",
@@ -45,16 +48,33 @@ def get_chapters_by_novel(conn: Connection, novel_id: int) -> list[dict]:
     rows = cursor.fetchall()
     return [_row_to_dict(row) for row in rows]
 
-def update_chapter(conn: Connection, chapter_id: int, title: str) -> bool:
+def update_chapter(conn: Connection, 
+                   chapter_id: int | None = None, 
+                   chapter_number: int | None = None, 
+                   title: str | None = None) -> bool:
     cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE chapters SET title = ? WHERE id = ?",
-        (title, chapter_id)
-    )
+
+    updates = []
+    params = []
+
+    if chapter_number is not None:
+        updates.append("chapter_number = ?")
+        params.append(chapter_number)
+    
+    if title is not None:
+        updates.append("title = ?")
+        params.append(title)
+    
+    if updates:
+        params.append(chapter_id)
+        query = f"UPDATE chapters SET {', '.join(updates)} WHERE id = ?"
+        cursor.execute(query, params)
+
     conn.commit()
+
     return cursor.rowcount > 0
 
-def update_chapter_content(conn: Connection, 
+def save_chapter_content(conn: Connection, 
                            chapter_id: int, 
                            content: str,
                            base_dir: str = BASE_DIR) -> str:
@@ -78,9 +98,9 @@ def update_chapter_content(conn: Connection,
     )
     conn.commit()
 
-    return file_path
+    return file_path, content_hash #TODO: content_hash not yet used
 
-def get_chapter_content(conn: Connection, chapter_id: int) -> Optional[str]:
+def load_chapter_content(conn: Connection, chapter_id: int) -> Optional[str]:
     cursor = conn.cursor()
     cursor.execute("SELECT raw_file_path FROM chapters WHERE id = ?", (chapter_id,))
     row = cursor.fetchone()
