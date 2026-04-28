@@ -1,6 +1,7 @@
 from typing import Generator
 from spacy.tokens import Token, Span, Doc
 from components.critic import Critic
+from context.character import CharacterRegistry
 
 
 class Component:
@@ -23,7 +24,7 @@ class Word(Component):
         self.head_index = token.head.i
         self.index = token.i
         self.ent_type = token.ent_type_
-        self.char_ref: set[str]| None = None
+        self.char_ref: set[str] = set()
 
     def get_tense(self):
         morph = self.morph
@@ -88,20 +89,15 @@ class Paragraph(Component):
         return string
 
 class Document:
-    def __init__(self, text: str, nlp_model):
-        self
+    def __init__(self, text: str, nlp_model, char_registry: CharacterRegistry | None = None):
         self.doc: Doc = nlp_model(text)
-        self.merge_characters()
+        self.char_registry: CharacterRegistry = char_registry
+        if char_registry:
+            self._merge_character_spans()
         self.paragraphs: list[Paragraph] = []
         self._split_paragraphs()
-        self._word_cache: list[tuple[Word, Sentence, Paragraph]] | None = None
-
-    def merge_characters(self):
-        with self.doc.retokenize() as retokenizer:
-            for ent in self.doc.ents:
-                if ent.label_ == "CHARACTER":
-                    retokenizer.merge(ent)
-        return self.doc
+        if char_registry:
+            self._preprocess_characters()
 
     def _split_paragraphs(self):
         start = 0
@@ -114,6 +110,59 @@ class Document:
 
         if start < len(self.doc):
             self.paragraphs.append(Paragraph(self.doc[start:]))
+
+    def _merge_character_spans(self):
+        if not self.char_registry:
+            return
+
+        spans_to_merge = []
+
+        for name in self.char_registry.get_names():
+            spans = self._find_all_spans(name)
+            spans_to_merge.extend(spans)
+
+        with self.doc.retokenize() as retokenizer:
+            for span in spans_to_merge:
+                if span is not None and len(span) > 1:
+                    retokenizer.merge(span)
+
+    def _find_all_spans(self, phrase: str):
+        phrase_tokens = phrase.lower().split()
+        spans = []
+
+        for i in range(len(self.doc) - len(phrase_tokens) + 1):
+            window = self.doc[i:i + len(phrase_tokens)]
+
+            if [t.text.lower() for t in window] == phrase_tokens:
+                spans.append(window)
+
+        return spans
+    
+    def _preprocess_characters(self):
+        if not self.char_registry:
+            return
+        
+        sentence_idx = -1
+
+        for item_type, component in self.iter_words_with_context():
+
+            if item_type == "SENT":
+                sentence_idx += 1
+                continue
+
+            if item_type != "WORD":
+                continue
+
+            word: Word = component
+            if self.char_registry._is_character(word.text):
+                self.char_registry._encounter_character(word.text, sentence_idx)
+                character = self.char_registry.get_character(word.text)
+                word.char_ref.add(character.common_name)
+            elif word.pos == "PRON":
+                characters = self.char_registry.get_recent_characters_for_pronoun(word.text)
+                for char in characters:
+                    word.char_ref.add(char.common_name)
+                         
 
     def iter_words_with_context(self) -> Generator[tuple[str, Component], None, None]:
         for paragraph in self.paragraphs:
