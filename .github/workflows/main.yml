@@ -25,4 +25,4 @@ jobs:
     - name: Run tests on database
       run: |
         cd backend
-        python -m pytest --cov=database --cov-report=term-missing --cov-fail-under=75
+        python -m pytest --cov=database --cov=rules --cov-report=term-missing --cov-fail-under=75
