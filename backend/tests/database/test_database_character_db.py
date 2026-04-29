@@ -23,7 +23,7 @@ def test_create_character(conn):
                                     alternative_names=["ABCD"],
                                     chapters=[chapter_id])
 
-    char2 = Character.from_dict(get_character_by_id(conn, character_id))
+    char2 = Character.from_dict(get_character(conn, character_id))
 
     assert char1 == char2
 
@@ -40,8 +40,8 @@ def test_link_character_to_chapter(conn):
     assert len(characters_in_chapter) == 1
     assert characters_in_chapter[0]["id"] == character_id
 
-def test_get_character_by_id_nonexistent(conn):
-    char_data = get_character_by_id(conn, 99999)
+def test_get_character_nonexistent(conn):
+    char_data = get_character(conn, 99999)
     assert char_data is None
 
 def test_cascade_delete(conn):
@@ -51,7 +51,7 @@ def test_cascade_delete(conn):
 
     delete_novel(conn, chapter_id)
 
-    char_data = get_character_by_id(conn, character_id)
+    char_data = get_character(conn, character_id)
     assert char_data is not None
 
 def test_update_character(conn):
@@ -65,7 +65,7 @@ def test_update_character(conn):
                                     alternative_names=["ABCD"],
                                     chapters=[chapter_id1])
     
-    char1 = Character.from_dict(get_character_by_id(conn, character_id))
+    char1 = Character.from_dict(get_character(conn, character_id))
 
     char2 = Character(
         common_name="XYZ",
@@ -85,7 +85,7 @@ def test_update_character(conn):
                      alternative_names={"Z"},
                      chapters={chapter_id2})
 
-    char1 = Character.from_dict(get_character_by_id(conn, character_id))
+    char1 = Character.from_dict(get_character(conn, character_id))
 
     assert char1 == char2
 
@@ -97,12 +97,12 @@ def test_delete_character(conn):
     chapter_id = create_chapter(conn, novel_id=novel_id, chapter_number=1, title="Chapter 1")
     character_id = create_character(conn, "ABC", chapters=[chapter_id])
 
-    char_data = get_character_by_id(conn, character_id)
+    char_data = get_character(conn, character_id)
     assert char_data is not None
 
     delete_character(conn, character_id)
 
-    char_data = get_character_by_id(conn, character_id)
+    char_data = get_character(conn, character_id)
     assert char_data is None
 
 
