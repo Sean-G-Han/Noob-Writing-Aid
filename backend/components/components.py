@@ -3,28 +3,52 @@ from spacy.tokens import Token, Span, Doc
 from components.critic import Critic
 from context.character import CharacterRegistry
 
-
 class Component:
-    def __init__(self, spacy_obj: Token | Span | Doc):
-        self.text = spacy_obj.text.strip()
+    def __init__(self, text: str):
+        self.text = text.strip()
         self.critics: list[Critic] = []
-    
+
     def add_critic(self, critic: Critic):
         self.critics.append(critic)
 
 class Word(Component):
-    def __init__(self, token: Token):
-        super().__init__(token)
-        self.start = token.idx
-        self.end = token.idx + len(token)
-        self.pos = token.pos_
-        self.lemma = token.lemma_
-        self.dependency = token.dep_
-        self.morph = token.morph
-        self.head_index = token.head.i
-        self.index = token.i
-        self.ent_type = token.ent_type_
+    def __init__(self,
+                 text: str,
+                 start: int = -1,
+                 end: int = -1,
+                 pos: str = "",
+                 lemma: str = "",
+                 dependency: str = "",
+                 morph=None,
+                 head_index: int = -1,
+                 index: int = -1,
+                 ent_type: str = ""):
+        super().__init__(text)
+        self.start = start
+        self.end = end
+        self.pos = pos
+        self.lemma = lemma
+        self.dependency = dependency
+        self.morph = morph
+        self.head_index = head_index
+        self.index = index
+        self.ent_type = ent_type
         self.char_ref: set[str] = set()
+
+    @classmethod
+    def from_token(cls, token: Token) -> "Word":
+        return cls(
+            text=token.text,
+            start=token.idx,
+            end=token.idx + len(token),
+            pos=token.pos_,
+            lemma=token.lemma_,
+            dependency=token.dep_,
+            morph=token.morph,
+            head_index=token.head.i,
+            index=token.i,
+            ent_type=token.ent_type_
+        )
 
     def get_tense(self):
         morph = self.morph
@@ -37,13 +61,13 @@ class Word(Component):
         if "VerbForm=Inf" in morph:
             return "infinitive"
         return "unknown"
-    
+
     def is_singular(self):
         return "Number=Sing" in self.morph
-    
+
     def is_plural(self):
         return "Number=Plur" in self.morph
-    
+
     def __str__(self):
         if self.critics:
             max_severity = max(c.severity.value for c in self.critics)
@@ -51,11 +75,20 @@ class Word(Component):
         return self.text
 
 class Sentence(Component):
-    def __init__(self, span: Span):
-        super().__init__(span)
-        self.start = span.start_char
-        self.end = span.end_char
-        self.words: list[Word] = [Word(token) for token in span]
+    def __init__(self, text: str, start: int = -1, end: int = -1, words: list[Word] | None = None):
+        super().__init__(text)
+        self.start = start
+        self.end = end
+        self.words = words or []
+
+    @classmethod
+    def from_span(cls, span: Span) -> "Sentence":
+        return cls(
+            text=span.text,
+            start=span.start_char,
+            end=span.end_char,
+            words=[Word.from_token(token) for token in span]
+        )
 
     def __str__(self):
         parts = []
@@ -75,11 +108,20 @@ class Sentence(Component):
         return sentence_str
 
 class Paragraph(Component):
-    def __init__(self, span: Span):
-        super().__init__(span)
-        self.start = span.start_char
-        self.end = span.end_char
-        self.sentences: list[Sentence] = [Sentence(sent) for sent in span.sents]
+    def __init__(self, text: str, start: int = -1, end: int = -1, sentences: list[Sentence] | None = None):
+        super().__init__(text)
+        self.start = start
+        self.end = end
+        self.sentences = sentences or []
+
+    @classmethod
+    def from_span(cls, span: Span) -> "Paragraph":
+        return cls(
+            text=span.text,
+            start=span[0].idx if len(span) > 0 else -1,
+            end=span[-1].idx + len(span[-1]) if len(span) > 0 else -1,
+            sentences=[Sentence.from_span(sent) for sent in span.sents]
+        )
 
     def __str__(self):
         string = " ".join(str(sentence) for sentence in self.sentences)
@@ -105,11 +147,11 @@ class Document:
         for i, token in enumerate(self.doc):
             if "\n" in token.text_with_ws:
                 span = self.doc[start:i+1]
-                self.paragraphs.append(Paragraph(span))
+                self.paragraphs.append(Paragraph.from_span(span))
                 start = i + 1
 
         if start < len(self.doc):
-            self.paragraphs.append(Paragraph(self.doc[start:]))
+            self.paragraphs.append(Paragraph.from_span(self.doc[start:]))
 
     def _merge_character_spans(self):
         if not self.char_registry:
