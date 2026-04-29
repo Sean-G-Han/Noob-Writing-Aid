@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlite3 import Connection
 
 from database.db import get_connection
-from models import ChapterSave, ChapterSaveResponse, ChapterLoadResponse
+from .models import ChapterSave, ChapterSaveResponse, ChapterLoadResponse
 from database.chapter_db import save_chapter_content, load_chapter_content
 router = APIRouter(prefix="/content")
 

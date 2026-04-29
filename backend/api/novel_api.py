@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlite3 import Connection
 
 from database.db import get_connection
-from models import NovelCreate, NovelUpdate, NovelResponse, BooleanResponse
+from .models import NovelCreate, NovelUpdate, NovelResponse, BooleanResponse
 from database.novel_db import (
     create_novel,
     get_novel,

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlite3 import Connection
 
 from database.db import get_connection
-from models import ChapterCreate, ChapterUpdate, ChapterResponse, ChapterSave, ChapterLoad
+from .models import ChapterCreate, ChapterUpdate, ChapterResponse
 from database.chapter_db import (
     create_chapter,
     get_chapter,

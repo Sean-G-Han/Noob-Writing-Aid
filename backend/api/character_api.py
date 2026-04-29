@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlite3 import Connection
 
 from database.db import get_connection
-from models import CharacterCreate, CharacterResponse, CharacterUpdate
+from .models import CharacterCreate, CharacterResponse, CharacterUpdate
 from database.character_db import (
     create_character,
     get_character,

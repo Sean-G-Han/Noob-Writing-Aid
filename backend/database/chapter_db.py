@@ -77,7 +77,10 @@ def update_chapter(conn: Connection,
 def save_chapter_content(conn: Connection, 
                            chapter_id: int, 
                            content: str,
-                           base_dir: str = BASE_DIR) -> str:
+                           base_dir: str|None = None) -> str:
+    
+    if base_dir is None:
+        base_dir = BASE_DIR
     
     os.makedirs(base_dir, exist_ok=True)
 
