@@ -21,12 +21,15 @@ class RepeatedSubjectRule(WindowRule):
             if self.referents[lemma] == 0:
                 del self.referents[lemma]
 
-    def _on_word(self, word: Word):
+    def _on_word(self, word: Word) -> bool:
+        issue_found = False
         if word.dependency == "nsubj":
             lemma = word.lemma.lower()
             if lemma in self.referents:
+                issue_found = True
                 word.add_critic(Critic(
                     f"Repeated subject '{word.text}' in close proximity",
                     Critic.Severity.LOW,
                     Critic.Type.STYLE
                 ))
+        return issue_found
