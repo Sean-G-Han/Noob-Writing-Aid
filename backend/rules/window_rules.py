@@ -6,13 +6,12 @@ class RepeatedSubjectRule(WindowRule):
     def __init__(self):
         self.referents: dict[str, int] = {}
 
-    def apply_insert(self, word: Word):
-
-        self._on_word(word)
-
+    def apply_insert(self, word: Word) -> bool:
+        issue_found = self._on_word(word)
         if word.dependency == "nsubj":
             lemma = word.lemma.lower()
             self.referents[lemma] = self.referents.get(lemma, 0) + 1
+        return issue_found
 
     def apply_remove(self, word: Word):
         if word.dependency == "nsubj":

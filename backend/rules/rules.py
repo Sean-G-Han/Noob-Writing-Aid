@@ -17,7 +17,7 @@ class ParagraphRule(Rule):
         raise NotImplementedError
     
 class WindowRule():
-    def apply_insert(self, new_word: Word) -> None:
+    def apply_insert(self, new_word: Word) -> bool:
         raise NotImplementedError
     
     def apply_remove(self, old_word: Word) -> None:
