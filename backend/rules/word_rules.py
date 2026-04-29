@@ -78,7 +78,7 @@ class SpellingRule(WordRule):
         issue_found = False
         clean = word.text.strip('.,!?;:').lower()
         if clean == "’s" or clean == "n’t" or clean == "'s" or clean == "n't":
-            return
+            return False
         if clean and word.pos not in {"PUNCT", "NUM", "PROPN",  "SYM"} and clean not in self.spell:
             issue_found = True
             word.add_critic(Critic(
@@ -92,7 +92,7 @@ class AmbiguousPronounRule(WordRule):
     def apply(self, word: Word)-> bool:
         issue_found = False
         if word.pos != "PRON":
-            return
+            return False
         if not word.char_ref or len(word.char_ref) == 0:
             issue_found = True
             word.add_critic(Critic(
