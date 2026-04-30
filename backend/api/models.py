@@ -24,6 +24,10 @@ class ChapterCreate(BaseModel):
     chapter_number: int
     title: str
 
+class ChapterAppend(BaseModel):
+    novel_id: int
+    title: str
+
 class ChapterUpdate(BaseModel):
     chapter_number: int | None
     title: str | None

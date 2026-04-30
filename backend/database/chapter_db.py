@@ -72,6 +72,7 @@ def append_chapter(conn: Connection,
             "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)", 
             (novel_id, next_number, title)
         )
+        
 
         return cursor.lastrowid
 

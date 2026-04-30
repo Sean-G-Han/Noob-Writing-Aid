@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlite3 import Connection
 
 from database.db import get_connection
-from .models import ChapterCreate, ChapterUpdate, ChapterResponse
+from .models import ChapterAppend, ChapterCreate, ChapterUpdate, ChapterResponse
 from database.chapter_db import (
     create_chapter,
+    append_chapter,
     get_chapter,
     get_chapters_by_novel,
     update_chapter,
@@ -16,6 +17,11 @@ router = APIRouter(prefix="/chapters")
 @router.post("/", response_model=ChapterResponse)
 def create(data: ChapterCreate, db: Connection = Depends(get_connection)):
     chapter_id = create_chapter(db, data.novel_id, data.chapter_number, data.title)
+    return get_chapter(db, chapter_id=chapter_id)
+
+@router.post("/append", response_model=ChapterResponse)
+def append(data: ChapterAppend, db: Connection = Depends(get_connection)):
+    chapter_id = append_chapter(db, data.novel_id, data.title)
     return get_chapter(db, chapter_id=chapter_id)
 
 @router.get("/{chapter_id}", response_model=ChapterResponse)
