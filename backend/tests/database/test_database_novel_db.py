@@ -16,7 +16,7 @@ def test_create_novel(conn):
 def test_duplicate_title(conn):
     create_novel(conn, "ABC")
 
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(DBError):
         create_novel(conn, "ABC")
 
 def test_get_novel(conn):

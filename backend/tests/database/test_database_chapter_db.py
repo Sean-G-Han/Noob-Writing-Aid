@@ -52,7 +52,7 @@ def test_duplicate_chapter_title(conn):
     novel_id = create_novel(conn, "ABC")
     create_chapter(conn, novel_id, 1, "Chapter 1")
 
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(DBError):
         create_chapter(conn, novel_id, 1, "Chapter 1")
 
 def test_get_chapter(conn):
