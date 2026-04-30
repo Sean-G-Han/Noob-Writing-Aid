@@ -16,15 +16,62 @@ def _row_to_dict(row) -> dict:
         "hash": row["hash"]
     }
 
+OFFSET = 1000000
+
+def _shift_down(cursor, novel_id: int, start: int, end: int):
+    cursor.execute("""
+        UPDATE chapters
+        SET chapter_number = chapter_number + ?
+        WHERE novel_id = ?
+          AND chapter_number > ?
+          AND chapter_number <= ?
+    """, (OFFSET, novel_id, start, end))
+
+    cursor.execute("""
+        UPDATE chapters
+        SET chapter_number = chapter_number - (? + 1)
+        WHERE novel_id = ?
+          AND chapter_number > ?
+          AND chapter_number <= ?
+    """, (OFFSET, novel_id, start + OFFSET, end + OFFSET))
+
 def create_chapter(conn: Connection, 
                    novel_id: int, 
                    chapter_number: int, 
                    title: str) -> int | None:
     cursor = conn.cursor()
+
+    # YH Notes: Hacky way to shift chapter numbers down to make room for the new chapter.
+    # This is necessary because chapter numbers are unique based on schema
+    # SQLite doesn't support UPDATE with ordering so doing UPDATE + 1 will cause conflicts
+    # This solution sends only 3 requests to the database, regardless of how many chapters need to be shifted
+    _shift_down(cursor, novel_id, chapter_number, OFFSET)
+
     cursor.execute(
-        "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)",
+        "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)", 
         (novel_id, chapter_number, title)
     )
+    conn.commit()
+    return cursor.lastrowid
+
+def append_chapter(conn: Connection, 
+                   novel_id: int, 
+                   title: str) -> int | None:
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT COALESCE(MAX(chapter_number), 0) + 1
+        FROM chapters
+        WHERE novel_id = ?
+    """, (novel_id,))
+    
+    next_number = cursor.fetchone()[0]
+
+    cursor.execute(
+        "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)", 
+        (novel_id, next_number, title)
+    )
+
     conn.commit()
     return cursor.lastrowid
 
@@ -52,7 +99,30 @@ def update_chapter(conn: Connection,
                    chapter_id: int | None = None, 
                    chapter_number: int | None = None, 
                    title: str | None = None) -> bool:
+    
     cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT novel_id, chapter_number FROM chapters WHERE id = ?",
+        (chapter_id,)
+    )
+    row = cursor.fetchone()
+    if not row:
+        return False
+
+    novel_id, old_number = row
+
+    if chapter_number is not None and chapter_number != old_number:
+        new_number = chapter_number
+
+        cursor.execute("""
+            UPDATE chapters
+            SET chapter_number = -1
+            WHERE id = ?
+        """, (chapter_id,))
+
+        if new_number > old_number:
+            _shift_down(cursor, novel_id, old_number, new_number)
 
     updates = []
     params = []
@@ -71,7 +141,6 @@ def update_chapter(conn: Connection,
         cursor.execute(query, params)
 
     conn.commit()
-
     return cursor.rowcount > 0
 
 def save_chapter_content(conn: Connection, 

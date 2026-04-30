@@ -17,6 +17,24 @@ def test_create_chapter(conn):
     assert row["chapter_number"] == 1
     assert row["title"] == "Chapter 1"
 
+def test_append_chapter(conn):
+    novel_id = create_novel(conn, "ABC")
+    chapter_id_1 = append_chapter(conn, novel_id, "Chapter 1")
+    chapter_id_2 = append_chapter(conn, novel_id, "Chapter 2")
+
+    row1 = conn.execute(
+        "SELECT * FROM chapters WHERE id = ?",
+        (chapter_id_1,)
+    ).fetchone()
+
+    row2 = conn.execute(
+        "SELECT * FROM chapters WHERE id = ?",
+        (chapter_id_2,)
+    ).fetchone()
+
+    assert row1["chapter_number"] == 1
+    assert row2["chapter_number"] == 2
+
 def test_cascade_delete(conn):
     novel_id = create_novel(conn, "ABC")
     chapter_id = create_chapter(conn, novel_id, 1, "Chapter 1")
@@ -98,14 +116,23 @@ def test_update_chapter_title(conn):
 
 def test_update_chapter_number(conn):
     novel_id = create_novel(conn, "ABC")
-    chapter_id = create_chapter(conn, novel_id, 1, "Chapter 1")
+    chapter_id1 = append_chapter(conn, novel_id, "Chapter 1")
+    chapter_id2 = append_chapter(conn, novel_id, "Chapter 2")
+    chapter_id3 = append_chapter(conn, novel_id, "Chapter 3")
 
-    result = update_chapter(conn, chapter_id, chapter_number=2)
+    result = update_chapter(conn, chapter_id2, chapter_number=3)
 
-    updated = get_chapter(conn, chapter_id)
-
+    updated1 = get_chapter(conn, chapter_id1)
+    updated2 = get_chapter(conn, chapter_id2)
+    updated3 = get_chapter(conn, chapter_id3)
     assert result is True
-    assert updated["chapter_number"] == 2
+    assert updated1["chapter_number"] == 1
+    assert updated2["chapter_number"] == 3
+    assert updated3["chapter_number"] == 2
+
+def test_update_chapter_invalid_id(conn):
+    result = update_chapter(conn, 9999, title="New Title")
+    assert result is False
 
 #YH Note: tmp_path is a pytest fixture that provides a temporary directory for testing file operations.
 def test_save_chapter_content(conn, tmp_path):
