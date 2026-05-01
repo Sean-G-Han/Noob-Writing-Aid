@@ -1,48 +1,51 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/navbar/Navbar";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Modal } from "./components/modal/Modal";
+import { AppContext } from "./AppContext";
 
 function App() {
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
+    const [selectedNovelId, setSelectedNovelId] = useState<number | null>(null);
 
-    function openModal(content: React.ReactNode) {
-        setModalContent(content);
-    }
-
-    function closeModal() {
-        setModalContent(null);
-    }
+    const closeModal = () => setModalContent(null);
 
     return (
-        <Router>
-            <div className="d-flex flex-column vh-100">
-                <Navbar openModal={openModal} />
+        <AppContext.Provider
+            value={{
+                selectedNovelId,
+                setSelectedNovelId,
+                modalContent,
+                setModalContent,
+                closeModal,
+            }}
+        >
+            <Router>
+                <div className="d-flex flex-column vh-100">
+                    <Navbar/>
 
-                <div className="flex-grow-1">
-                    <Routes>
-                        <Route path="/" element={<File />} />
-                        <Route path="/file" element={<File />} />
-                        <Route path="/chapter" element={<Chapter />} />
-                        <Route path="/character" element={<Character />} />
-                        <Route path="/editor" element={<Editor />} />
-                    </Routes>
+                    <div className="flex-grow-1">
+                        <Routes>
+                            <Route path="/" element={<Main />} />
+                            <Route path="/chapter" element={<Chapter />} />
+                            <Route path="/character" element={<Character />} />
+                            <Route path="/editor" element={<Editor />} />
+                        </Routes>
+                    </div>
+                    <Modal />
                 </div>
-
-                <Modal open={!!modalContent} onClose={closeModal}>
-                    {modalContent}
-                </Modal>
-            </div>
-        </Router>
+            </Router>
+        </AppContext.Provider>
     );
 }
 
 
 
-function File() {
+function Main() {
+    const {selectedNovelId} = useContext(AppContext);
     return (
         <div className="w-100 h-100 p-3">
-            <h1>File Page</h1>
+            <h1>Novel {selectedNovelId} </h1>
         </div>
     );
 }
