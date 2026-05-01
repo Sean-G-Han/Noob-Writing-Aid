@@ -28,11 +28,16 @@ def _row_to_dict(row) -> dict:
 #     rows = cursor.fetchall()
 #     print([(row["id"], row["chapter_number"]) for row in rows])
 
+def _shift_chapter_delete(cursor, novel_id: int, chapter_number_to_delete: int):
+    cursor.execute("""
+        UPDATE chapters
+        SET chapter_number = chapter_number - 1
+        WHERE novel_id = ? AND chapter_number > ?
+    """, (novel_id, chapter_number_to_delete))
+
 def _shift_chapter_number(cursor, novel_id: int, old: int, new: int):
     if old == new:
         return
-    
-    print(f"Shifting chapter numbers for novel_id={novel_id} from {old} to {new}")
     
     small = min(old, new)
     large = max(old, new)
@@ -229,8 +234,13 @@ def delete_chapter(conn: Connection, chapter_id: int) -> bool:
     try:
         with conn:
             cursor = conn.cursor()
+            cursor.execute("SELECT novel_id, chapter_number FROM chapters WHERE id = ?", (chapter_id,))
+            row = cursor.fetchone()
+            if not row:
+                return False
+            novel_id, chapter_number = row
             cursor.execute("DELETE FROM chapters WHERE id = ?", (chapter_id,))
-            conn.commit()
-            return cursor.rowcount > 0
+            _shift_chapter_delete(cursor, novel_id, chapter_number)
+            return True
     except sqlite3.Error as e:
         raise DBError(f"Failed to delete chapter: {str(e)}") from e

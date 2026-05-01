@@ -201,11 +201,19 @@ def test_load_chapter_content_file_missing(conn, tmp_path):
 
 def test_delete_chapter(conn):
     novel_id = create_novel(conn, "ABC")
-    chapter_id = create_chapter(conn, novel_id, 1, "Chapter 1")
+    chapter_id1 = append_chapter(conn, novel_id, "Chapter 1")
+    chapter_id2 = append_chapter(conn, novel_id, "Chapter 2")
+    chapter_id3 = append_chapter(conn, novel_id, "Chapter 3")
 
-    result = delete_chapter(conn, chapter_id)
 
-    row = get_chapter(conn, chapter_id)
+    result = delete_chapter(conn, chapter_id2)
+
+    row = get_chapter(conn, chapter_id2)
 
     assert result is True
     assert row is None
+
+    updated1 = get_chapter(conn, chapter_id1)
+    updated3 = get_chapter(conn, chapter_id3)
+    assert updated1["chapter_number"] == 1
+    assert updated3["chapter_number"] == 2
