@@ -18,24 +18,60 @@ def _row_to_dict(row) -> dict:
         "hash": row["hash"]
     }
 
-OFFSET = 1000000
+# def _print_chapters(cursor, novel_id: int):
+#     cursor.execute("""
+#         SELECT id, chapter_number FROM chapters
+#         WHERE novel_id = ?
+#         ORDER BY chapter_number
+#     """, (novel_id,))
 
-def _shift_down(cursor, novel_id: int, start: int, end: int):
+#     rows = cursor.fetchall()
+#     print([(row["id"], row["chapter_number"]) for row in rows])
+
+def _shift_chapter_number(cursor, novel_id: int, old: int, new: int):
+    if old == new:
+        return
+    
+    print(f"Shifting chapter numbers for novel_id={novel_id} from {old} to {new}")
+    
+    small = min(old, new)
+    large = max(old, new)
     cursor.execute("""
         UPDATE chapters
-        SET chapter_number = chapter_number + ?
+        SET chapter_number = -chapter_number
         WHERE novel_id = ?
-          AND chapter_number > ?
-          AND chapter_number <= ?
-    """, (OFFSET, novel_id, start, end))
+    """, (novel_id,))
 
     cursor.execute("""
         UPDATE chapters
-        SET chapter_number = chapter_number - (? + 1)
-        WHERE novel_id = ?
-          AND chapter_number > ?
-          AND chapter_number <= ?
-    """, (OFFSET, novel_id, start + OFFSET, end + OFFSET))
+        SET chapter_number = ?
+        WHERE novel_id = ? AND chapter_number = -?
+    """, (new, novel_id, old))
+
+    cursor.execute("""
+        UPDATE chapters
+        SET chapter_number = -chapter_number
+        WHERE novel_id = ? AND 
+            chapter_number < 0 AND
+            (chapter_number > -? OR chapter_number < -?)
+    """, (novel_id, small, large))
+
+    if new > old:
+        cursor.execute("""
+            UPDATE chapters
+            SET chapter_number = -chapter_number -1
+            WHERE novel_id = ? AND 
+            chapter_number < 0 AND
+                (chapter_number <= -? OR chapter_number >= -?)
+        """, (novel_id, small, large))
+    else:
+        cursor.execute("""
+            UPDATE chapters
+            SET chapter_number = -chapter_number +1
+            WHERE novel_id = ? AND 
+            chapter_number < 0 AND
+                (chapter_number <= -? OR chapter_number >= -?)
+        """, (novel_id, small, large))
 
 def create_chapter(conn: Connection, 
                    novel_id: int, 
@@ -44,12 +80,6 @@ def create_chapter(conn: Connection,
     try:
         with conn:
             cursor = conn.cursor()
-
-            # YH Notes: Hacky way to shift chapter numbers down to make room for the new chapter.
-            # This is necessary because chapter numbers are unique based on schema
-            # SQLite doesn't support UPDATE with ordering so doing UPDATE + 1 will cause conflicts
-            # This solution sends only 3 requests to the database, regardless of how many chapters need to be shifted
-            _shift_down(cursor, novel_id, chapter_number, OFFSET)
 
             cursor.execute(
                 "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)", 
@@ -78,7 +108,6 @@ def append_chapter(conn: Connection,
                 "INSERT INTO chapters (novel_id, chapter_number, title) VALUES (?, ?, ?)", 
                 (novel_id, next_number, title)
             )
-            
 
             return cursor.lastrowid
     except sqlite3.Error as e:
@@ -129,15 +158,7 @@ def update_chapter(conn: Connection,
 
             if chapter_number is not None and chapter_number != old_number:
                 new_number = chapter_number
-
-                cursor.execute("""
-                    UPDATE chapters
-                    SET chapter_number = -1
-                    WHERE id = ?
-                """, (chapter_id,))
-
-                if new_number > old_number:
-                    _shift_down(cursor, novel_id, old_number, new_number)
+                _shift_chapter_number(cursor, novel_id, old_number, new_number)
 
             updates = []
             params = []

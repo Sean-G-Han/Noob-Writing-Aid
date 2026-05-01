@@ -119,16 +119,35 @@ def test_update_chapter_number(conn):
     chapter_id1 = append_chapter(conn, novel_id, "Chapter 1")
     chapter_id2 = append_chapter(conn, novel_id, "Chapter 2")
     chapter_id3 = append_chapter(conn, novel_id, "Chapter 3")
+    chapter_id4 = append_chapter(conn, novel_id, "Chapter 4")
 
     result = update_chapter(conn, chapter_id2, chapter_number=3)
 
     updated1 = get_chapter(conn, chapter_id1)
     updated2 = get_chapter(conn, chapter_id2)
     updated3 = get_chapter(conn, chapter_id3)
+    updated4 = get_chapter(conn, chapter_id4)
+
     assert result is True
+
     assert updated1["chapter_number"] == 1
     assert updated2["chapter_number"] == 3
     assert updated3["chapter_number"] == 2
+    assert updated4["chapter_number"] == 4
+
+    result = update_chapter(conn, chapter_id2, chapter_number=2)
+
+    updated1 = get_chapter(conn, chapter_id1)
+    updated2 = get_chapter(conn, chapter_id2)
+    updated3 = get_chapter(conn, chapter_id3)
+    updated4 = get_chapter(conn, chapter_id4)
+
+    assert result is True
+
+    assert updated1["chapter_number"] == 1
+    assert updated2["chapter_number"] == 2
+    assert updated3["chapter_number"] == 3
+    assert updated4["chapter_number"] == 4
 
 def test_update_chapter_invalid_id(conn):
     result = update_chapter(conn, 9999, title="New Title")

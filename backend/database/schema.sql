@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS chapters (
     annotated_file_path TEXT DEFAULT '',
     hash TEXT DEFAULT '',
     FOREIGN KEY (novel_id) REFERENCES novels(id) ON DELETE CASCADE,
-    UNIQUE (novel_id, chapter_number)
+    UNIQUE (title, novel_id),
+    UNIQUE (chapter_number, novel_id)
 );
 
 CREATE TABLE IF NOT EXISTS chapter_to_character (
