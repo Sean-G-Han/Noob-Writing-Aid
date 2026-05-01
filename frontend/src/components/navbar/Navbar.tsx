@@ -33,12 +33,12 @@ export function Navbar() {
     });
 
     return (
-        <nav className="navbar navbar-dark bg-dark p-2">
+        <nav className="navbar navbar-dark bg-dark py-2">
             <div className="container-fluid">
                 <div className="d-flex gap-5 align-items-center">
                     <div className="position-relative" ref={menuRef}>
                         <button
-                            className="btn btn-outline-light btn-sm px-3"
+                            className="btn btn-outline-light btn-sm"
                             onClick={handleNovelClick}
                         >
                             Novel

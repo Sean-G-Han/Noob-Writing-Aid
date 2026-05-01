@@ -3,18 +3,20 @@ import { Navbar } from "./components/navbar/Navbar";
 import { useContext, useState } from "react";
 import { Modal } from "./components/modal/Modal";
 import { AppContext } from "./AppContext";
+import { Chapter } from "./components/page/Chapter";
+import type { Novel } from "./types";
 
 function App() {
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
-    const [selectedNovelId, setSelectedNovelId] = useState<number | null>(null);
+    const [selectedNovel, setSelectedNovel] = useState<Novel | null>(null);
 
     const closeModal = () => setModalContent(null);
 
     return (
         <AppContext.Provider
             value={{
-                selectedNovelId,
-                setSelectedNovelId,
+                selectedNovel,
+                setSelectedNovel,
                 modalContent,
                 setModalContent,
                 closeModal,
@@ -42,18 +44,10 @@ function App() {
 
 
 function Main() {
-    const {selectedNovelId} = useContext(AppContext);
+    const {selectedNovel} = useContext(AppContext);
     return (
         <div className="w-100 h-100 p-3">
-            <h1>Novel {selectedNovelId} </h1>
-        </div>
-    );
-}
-
-function Chapter() {
-    return (
-        <div className="w-100 h-100 p-3">
-            <h1>Chapter Page</h1>
+            <h1>Novel {selectedNovel?.title} </h1>
         </div>
     );
 }

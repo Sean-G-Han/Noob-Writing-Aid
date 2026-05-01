@@ -20,5 +20,8 @@ export async function apiRequest<T>(
         return Failure(`API request failed with status ${res.status}: ${res.statusText}`);
     }
 
-    return Success(await res.json() as T);
+    const data = await res.json() as T;
+    
+    console.log(`API request successful: ${res.status} ${res.statusText}: ${JSON.stringify(data)}`);
+    return Success(data);
 }

@@ -21,7 +21,7 @@ export function CreateNovelModal() {
 
     return (
         <>
-                <div className="row align-items-center">
+            <div className="row align-items-center">
                 <div className="col-4">
                     <h5 className="mb-0">Create Novel</h5>
                 </div>
@@ -104,12 +104,12 @@ export function LoadNovelModal() {
 }
 
 export function LoadNovelItem({novel}: {novel: NovelResponse}) {
-    const { closeModal, setSelectedNovelId } = useContext(AppContext);
+    const { closeModal, setSelectedNovel } = useContext(AppContext);
     return (
         <button 
             className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
             onClick={() => {
-                setSelectedNovelId(novel.id);
+                setSelectedNovel(novel);
                 closeModal();
             }}
 

@@ -1,8 +1,9 @@
 import { createContext } from "react";
+import type { Novel } from "./types";
 
 type AppContextType = {
-    selectedNovelId: number | null;
-    setSelectedNovelId: (id: number | null) => void;
+    selectedNovel: Novel | null;
+    setSelectedNovel: (novel: Novel | null) => void;
 
     modalContent: React.ReactNode | null;
     setModalContent: (content: React.ReactNode | null) => void;
@@ -10,8 +11,8 @@ type AppContextType = {
 };
 
 export const AppContext = createContext<AppContextType>({
-    selectedNovelId: null,
-    setSelectedNovelId: () => {},
+    selectedNovel: null,
+    setSelectedNovel: () => {},
 
     modalContent: null,
     setModalContent: () => {},

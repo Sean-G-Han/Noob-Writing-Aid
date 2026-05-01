@@ -24,3 +24,8 @@ export const NodeFactory = {
         return { type: "annotation", severity, errorType, content, children };
     }
 };
+
+export type Novel = {
+    id: number;
+    title: string;
+};
