@@ -1,173 +1,138 @@
 import { useContext, useState } from "react";
 import { gradeChapterContent, loadChapterContent, saveChapterContent } from "../../api/ContentAPI";
 import { AppContext } from "../../AppContext";
+import { NodeParser } from "../components/NodeParser";
 
-
-/* =========================
-    TOP BAR
-========================= */
-
-function TopBar({
-    onSave,
-    onLoad,
-    onAnalyze,
-}: {
+type TopBarProps = {
     onSave: () => void;
     onLoad: () => void;
     onAnalyze: () => void;
-}) {
+};
+
+function TopBar({ onSave, onLoad, onAnalyze }: TopBarProps) {
     return (
-        <div className="card bg-dark text-white mb-3">
-            <div className="card-body d-flex justify-content-between align-items-center">
-                <h5 className="mb-0">Noob Writing Assistant</h5>
+        <div className="d-flex justify-content-between align-items-center bg-dark text-white px-3 py-2 rounded mb-2 shadow-sm">
+            <div className="fw-semibold">Noob Writing Assistant</div>
 
-                <div className="d-flex gap-2">
-                    <button
-                        className="btn btn-outline-light btn-sm"
-                        onClick={onLoad}
-                    >
-                        Load
-                    </button>
+            <div className="d-flex gap-2">
+                <button className="btn btn-outline-light btn-sm" onClick={onLoad}>
+                    Load
+                </button>
 
-                    <button
-                        className="btn btn-outline-light btn-sm"
-                        onClick={onSave}
-                    >
-                        Save
-                    </button>
+                <button className="btn btn-outline-light btn-sm" onClick={onSave}>
+                    Save
+                </button>
 
-                    <button
-                        className="btn btn-success btn-sm"
-                        onClick={onAnalyze}
-                    >
-                        Analyze
-                    </button>
-                </div>
+                <button className="btn btn-success btn-sm" onClick={onAnalyze}>
+                    Analyze
+                </button>
             </div>
         </div>
     );
 }
 
-/* =========================
-    INPUT
-========================= */
-
-function InputPanel({
-    text,
-    setText,
-}: {
+type InputPanelProps = {
     text: string;
-    setText: (v: string) => void;
-}) {
-    return (
-        <div className="col-md-6">
-            <div className="card h-100">
-                <div className="card-header">Input</div>
+    setText: (text: string) => void;
+};
 
-                <div className="card-body p-0">
-                    <textarea
-                        className="form-control border-0"
-                        style={{
-                            minHeight: "70vh",
-                            resize: "none",
-                        }}
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        placeholder="Start writing here..."
-                    />
+function InputPanel({ text, setText }: InputPanelProps) {
+    return (
+        <div className="col-md-6 h-100">
+            <div className="bg-white rounded shadow-sm h-100 d-flex flex-column overflow-hidden">
+                
+                <div className="px-3 py-2 border-bottom fw-semibold">
+                    Input
                 </div>
+
+                <textarea
+                    className="form-control border-0 flex-grow-1 p-3"
+                    style={{
+                        resize: "none",
+                        outline: "none",
+                        boxShadow: "none",
+                        fontFamily: "inherit",
+                    }}
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    placeholder="Start writing here..."
+                />
             </div>
         </div>
     );
 }
 
-/* =========================
-    OUTPUT
-========================= */
+type OutputPanelProps = {
+    analysis: string;
+};
 
-function OutputPanel({ analysis }: { analysis: string }) {
+function OutputPanel({ analysis }: OutputPanelProps) {
     return (
-        <div className="col-md-6">
-            <div className="card h-100">
-                <div className="card-header">Analysis</div>
+        <div className="col-md-6 h-100">
+            <div className="bg-white rounded shadow-sm h-100 d-flex flex-column overflow-hidden">
 
-                <div className="card-body">
+                <div className="px-3 py-2 border-bottom fw-semibold">
+                    Analysis
+                </div>
+
+                <div className="flex-grow-1 overflow-auto p-3">
                     {analysis ? (
-                        <pre style={{ whiteSpace: "pre-wrap" }}>
-                            {analysis}
-                        </pre>
+                        <NodeParser text={analysis} />
                     ) : (
-                        <span className="text-muted">
+                        <div className="text-muted">
                             No analysis yet
-                        </span>
+                        </div>
                     )}
                 </div>
+
             </div>
         </div>
     );
 }
-
-/* =========================
-    MAIN
-========================= */
 
 export function WritingEditor() {
     const [text, setText] = useState("");
     const [analysis, setAnalysis] = useState("");
-    const { selectedChapter } = useContext(AppContext)
+    const { selectedChapter } = useContext(AppContext);
 
     async function handleSave() {
-        if (!selectedChapter)
-            return
-        const res = await saveChapterContent(selectedChapter.id, {
-            content: text,
-        });
+        if (!selectedChapter) return;
 
-        if (res.ok) {
-            alert("Saved successfully");
-        } else {
-            alert("Save failed: " + res.error);
-        }
+        const res = await saveChapterContent(selectedChapter.id, { content: text });
+        alert(res.ok ? "Saved" : res.error);
     }
 
     async function handleLoad() {
-        if (!selectedChapter)
-            return
-        const res = await loadChapterContent(selectedChapter.id);
+        if (!selectedChapter) return;
 
-        if (res.ok) {
-            setText(res.result.content);
-        } else {
-            alert("Load failed: " + res.error);
-        }
+        const res = await loadChapterContent(selectedChapter.id);
+        if (res.ok) setText(res.result.content);
+        else alert(res.error);
     }
 
     async function handleAnalyze() {
-        if (!selectedChapter)
-            return
-        const res = await gradeChapterContent(selectedChapter.id);
+        if (!selectedChapter) return;
 
-        if (res.ok) {
-            setAnalysis(res.result.annotatedText);
-        } else {
-            alert("Analyze failed: " + res.error);
-        }
+        const res = await gradeChapterContent(selectedChapter.id);
+        if (res.ok) setAnalysis(res.result.annotatedText);
+        else alert(res.error);
     }
 
     return (
-        <div className="container-fluid py-3">
-
+        <div
+            className="d-flex flex-column px-3 py-2"
+            style={{ height: "calc(100vh - 78px)", background: "#f5f6f8" }}
+        >
             <TopBar
                 onSave={handleSave}
                 onLoad={handleLoad}
                 onAnalyze={handleAnalyze}
             />
 
-            <div className="row g-3">
+            <div className="row flex-grow-1 g-3" style={{ minHeight: 0 }}>
                 <InputPanel text={text} setText={setText} />
                 <OutputPanel analysis={analysis} />
             </div>
-
         </div>
     );
 }

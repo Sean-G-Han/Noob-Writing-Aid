@@ -71,7 +71,7 @@ class Word(Component):
     def __str__(self):
         if self.critics:
             max_severity = max(c.severity.value for c in self.critics)
-            return f"[(Severity: {max_severity})({', '.join(str(c) for c in self.critics)}){self.text}]"
+            return f"[<{max_severity}>({'|'.join(str(c) for c in self.critics)}){self.text}]"
         return self.text
 
 class Sentence(Component):
@@ -104,7 +104,7 @@ class Sentence(Component):
         sentence_str = " ".join(parts)
         if self.critics:
             max_severity = max(c.severity.value for c in self.critics)
-            sentence_str = f"[(Severity: {max_severity})({', '.join(str(c) for c in self.critics)}) {sentence_str}]"
+            sentence_str = f"[<{max_severity}>({', '.join(str(c) for c in self.critics)}) {sentence_str}]"
         return sentence_str
 
 class Paragraph(Component):
@@ -127,7 +127,7 @@ class Paragraph(Component):
         string = " ".join(str(sentence) for sentence in self.sentences)
         if self.critics:
             max_severity = max(c.severity.value for c in self.critics)
-            return f"[(Severity: {max_severity})({', '.join(str(c) for c in self.critics)}){string}]"
+            return f"[<{max_severity}>({', '.join(str(c) for c in self.critics)}){string}]"
         return string
 
 class Document:

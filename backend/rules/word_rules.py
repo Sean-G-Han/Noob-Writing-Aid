@@ -96,14 +96,14 @@ class AmbiguousPronounRule(WordRule):
         if not word.char_ref or len(word.char_ref) == 0:
             issue_found = True
             word.add_critic(Critic(
-                f"Ambiguous pronoun '{word.text}' with no clear reference",
+                f"Ambiguous pronoun '{word.text}' -> no reference",
                 Critic.Severity.HIGH,
                 Critic.Type.CLARITY
             ))
         elif len(word.char_ref) > 1:
             issue_found = True
             word.add_critic(Critic(
-                f"Ambiguous pronoun '{word.text}' with multiple possible references: {', '.join(word.char_ref)}",
+                f"Ambiguous pronoun '{word.text}' -> {', '.join(word.char_ref)}",
                 Critic.Severity.MEDIUM,
                 Critic.Type.CLARITY
             ))
