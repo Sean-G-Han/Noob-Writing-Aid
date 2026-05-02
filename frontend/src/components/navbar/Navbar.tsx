@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { useContext, useRef, useState } from "react";
-import { CreateNovelModal, EditNovelModal, LoadNovelModal } from "../modal/NovelModal";
 import { AppContext } from "../../AppContext";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
+import { CreateNovelModal } from "../modal/novel/CreateNovelModal";
+import { LoadNovelModal } from "../modal/novel/LoadNovelModal";
+import { EditNovelModal } from "../modal/novel/EditNovelModal";
 
 export function NovelMenu({ open, onNew, onOpen, onEdit}: { open: boolean, onNew: () => void, onOpen: () => void, onEdit: () => void }) {
   if (!open) return null;
@@ -20,7 +22,7 @@ export function NovelMenu({ open, onNew, onOpen, onEdit}: { open: boolean, onNew
 
 export function Navbar() {
     const [NovelActive, setNovelActive] = useState(false);
-    const { setModalContent } = useContext(AppContext);
+    const { setModalContent, selectedNovel } = useContext(AppContext);
 
     function handleNovelClick() {
         setNovelActive(true);
@@ -41,7 +43,12 @@ export function Navbar() {
                             className="btn btn-outline-light btn-sm"
                             onClick={handleNovelClick}
                         >
-                            Novel
+                            {!selectedNovel
+                            ? "Novel"
+                            : selectedNovel.title.length > 10
+                                ? "Novel: " + selectedNovel.title.slice(0, 7) + "..."
+                                : "Novel: " + selectedNovel.title
+                            }
                         </button>
 
                         <NovelMenu

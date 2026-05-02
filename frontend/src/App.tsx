@@ -3,12 +3,13 @@ import { Navbar } from "./components/navbar/Navbar";
 import { useState } from "react";
 import { Modal } from "./components/modal/Modal";
 import { AppContext } from "./AppContext";
-import { Chapter } from "./components/page/Chapter";
-import type { Novel } from "./types";
+import type { Chapter, Novel } from "./types";
+import { ChapterPage } from "./components/page/Chapter";
 
 function App() {
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
     const [selectedNovel, setSelectedNovel] = useState<Novel | null>(null);
+    const [selectedChapter, setSelectedChapter] = useState<Chapter | null>(null);
 
     const closeModal = () => setModalContent(null);
 
@@ -17,6 +18,8 @@ function App() {
             value={{
                 selectedNovel,
                 setSelectedNovel,
+                selectedChapter,
+                setSelectedChapter,
                 modalContent,
                 setModalContent,
                 closeModal,
@@ -28,9 +31,10 @@ function App() {
 
                     <div className="flex-grow-1">
                         <Routes>
-                            <Route path="/chapter" element={<Chapter />} />
-                            <Route path="/character" element={<Character />} />
-                            <Route path="/editor" element={<Editor />} />
+                            <Route path="/" element={<ChapterPage />} />
+                            <Route path="/chapter" element={<ChapterPage />} />
+                            <Route path="/character" element={<CharacterPage />} />
+                            <Route path="/editor" element={<EditorPage />} />
                         </Routes>
                     </div>
                     <Modal />
@@ -40,7 +44,7 @@ function App() {
     );
 }
 
-function Character() {
+function CharacterPage() {
   return (
         <div className="w-100 h-100 p-3">
             <h1>Character Page</h1>
@@ -48,7 +52,7 @@ function Character() {
   );
 }
 
-function Editor() {
+function EditorPage() {
   return (
         <div className="w-100 h-100 p-3">
             <h1>Editor Page</h1>

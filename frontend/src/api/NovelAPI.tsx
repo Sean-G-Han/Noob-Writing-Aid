@@ -1,3 +1,4 @@
+import type { Novel } from "../types";
 import { apiRequest } from "./Client";
 
 export type CreateNovelRequest = {
@@ -10,13 +11,9 @@ export type BooleanResponse = {
 
 // Note repeated Novel and NovelResponse types. 
 // Novel is used for frontend state management, while NovelResponse is used for API responses.
-export type NovelResponse = {
-    id: number;
-    title: string;
-};
 
 export function createNovel(data: CreateNovelRequest) {
-    return apiRequest<NovelResponse>(
+    return apiRequest<Novel>(
         "/novels/",
         "POST",
         data
@@ -24,14 +21,14 @@ export function createNovel(data: CreateNovelRequest) {
 }
 
 export function getNovels() {
-    return apiRequest<NovelResponse[]>(
+    return apiRequest<Novel[]>(
         "/novels/",
         "GET"
     );
 }
 
 export function updateNovel(id: number, data: CreateNovelRequest) {
-    return apiRequest<NovelResponse>(
+    return apiRequest<Novel>(
         `/novels/${id}`,
         "PUT",
         data

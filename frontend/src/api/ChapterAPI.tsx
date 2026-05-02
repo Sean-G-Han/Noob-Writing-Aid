@@ -1,14 +1,5 @@
+import type { Chapter } from "../types";
 import { apiRequest } from "./Client";
-
-export type ChapterResponse = {
-    id: number
-    novel_id: number
-    chapter_number: number
-    title: string
-    raw_file_path: number | null
-    annotated_file_path: string | null
-    hash: string | null
-};
 
 // REVIEW Inconsidency as chapter uses the same type
 // for create and update. Consider refactoring
@@ -17,30 +8,37 @@ export type CreateChapterRequest = {
     title: string
 };
 
-export type UpdateChapterRequest = {
+export type EditChapterRequest = {
     title: string
     chapter_number: number
 };
 
 export function getChapters(novelId: number) {
-    return apiRequest<ChapterResponse[]>(
+    return apiRequest<Chapter[]>(
         `/chapters/novel/${novelId}`,
         "GET"
     );
 }
 
 export function createChapter(data: CreateChapterRequest) {
-    return apiRequest<ChapterResponse>(
+    return apiRequest<Chapter>(
         `/chapters/append`,
         "POST",
         data
     );
 }
 
-export function updateChapter(id: number, data: Partial<UpdateChapterRequest>) {
-    return apiRequest<ChapterResponse>(
+export function editChapter(id: number, data: Partial<EditChapterRequest>) {
+    return apiRequest<Chapter>(
         `/chapters/${id}`,
         "PUT",
         data
+    );
+}
+
+export function deleteChapter(id: number) {
+    return apiRequest<{ ok: boolean }>(
+        `/chapters/${id}`,
+        "DELETE"
     );
 }

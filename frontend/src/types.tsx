@@ -39,3 +39,12 @@ export type Chapter = {
     annotated_file_path: string | null
     hash: string | null
 };
+
+export type Character = {
+    id: number;
+    common_name: string;
+    adjectives: string[];
+    description: string;
+    pronouns: string[];
+    alternative_names: string[];
+}

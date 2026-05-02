@@ -1,34 +1,38 @@
 import { useContext, useEffect, useState } from "react";
 import { AppContext } from "../../AppContext";
-import type { Chapter } from "../../types";
-import { getChapters } from "../../api/ChapterAPI";
-import { CreateChapterModal, EditChapterModal } from "../modal/ChapterModal";
+import type { Character, Chapter } from "../../types";
+import { deleteChapter, getChapters } from "../../api/ChapterAPI";
+import { deleteCharacter, getCharacters } from "../../api/CharacterAPI";
+import { CreateChapterModal } from "../modal/chapter/CreateChapterModal";
+import { EditChapterModal } from "../modal/chapter/EditChapterModal";
+import { CreateCharacterModal } from "../modal/character/CreateCharacterModal";
+import { EditCharacterModal } from "../modal/character/EditCharacterModal";
 
-export function Chapter() {
+export function ChapterPage() {
     return (
         <div className="row w-100 h-100 align-items-start m-0 p-0">
             <div className="col-6 flex-column d-flex" style={{ height: "100%" }}>
                 <ChapterView />
             </div>
             <div className="col-6 flex-column d-flex" style={{ height: "100%" }}>
+                <CharacterView />
             </div>
         </div>
     );
 }
 
 export function ChapterView() {
-    const { selectedNovel, setModalContent } = useContext(AppContext);
+    const { selectedNovel, setSelectedChapter, setModalContent } =
+        useContext(AppContext);
+
     const [chapters, setChapters] = useState<Chapter[]>([]);
 
     useEffect(() => {
         if (!selectedNovel) return;
 
         getChapters(selectedNovel.id).then((res) => {
-            if (res.ok) {
-                setChapters(res.result);
-            } else {
-                alert("Failed to fetch chapters: " + res.error);
-            }
+            if (res.ok) setChapters(res.result);
+            else alert("Failed to fetch chapters: " + res.error);
         });
     }, [selectedNovel]);
 
@@ -37,11 +41,8 @@ export function ChapterView() {
 
         const res = await getChapters(selectedNovel.id);
 
-        if (res.ok) {
-            setChapters(res.result);
-        } else {
-            alert("Failed to refresh chapters: " + res.error);
-        }
+        if (res.ok) setChapters(res.result);
+        else alert("Failed to refresh chapters: " + res.error);
     }
 
     function handleCreateChapter() {
@@ -71,7 +72,7 @@ export function ChapterView() {
                 <div className="fw-bold">
                     {!selectedNovel
                         ? "No Novel Selected"
-                        : selectedNovel.title + " - Chapters"}
+                        : `${selectedNovel.title} - Chapters`}
                 </div>
 
                 <button
@@ -87,15 +88,16 @@ export function ChapterView() {
                 {[...chapters]
                     .sort((a, b) => a.chapter_number - b.chapter_number)
                     .map((chapter) => (
-                        <ChapterItem
+                        <Item
                             key={chapter.id}
-                            chapter={chapter}
-                            onClick={() =>
-                                alert("Clicked " + chapter.title)
-                            }
+                            title={chapter.title}
+                            onClick={() => setSelectedChapter(chapter)}
                             onEdit={() => handleEditChapter(chapter)}
                             onDelete={() =>
-                                alert("Delete " + chapter.title)
+                                deleteChapter(chapter.id).then((res) => {
+                                    if (res.ok) refreshChapters();
+                                    else alert("Failed to delete chapter: " + res.error);
+                                })
                             }
                         />
                     ))}
@@ -104,24 +106,98 @@ export function ChapterView() {
     );
 }
 
-type ChapterItemProps = {
-  chapter: Chapter;
-  onClick: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+export function CharacterView() {
+    const { selectedNovel, selectedChapter, setModalContent } = useContext(AppContext);
+    const [characters, setCharacters] = useState<Character[]>([]);
+
+    useEffect(() => {
+        if (!selectedNovel || !selectedChapter) return;
+
+        getCharacters(selectedChapter.id).then((res) => {
+            if (res.ok) setCharacters(res.result);
+            else alert("Failed to fetch characters: " + res.error);
+        });
+    }, [selectedNovel, selectedChapter]);
+
+    async function refreshCharacters() {
+        if (!selectedNovel || !selectedChapter) return;
+
+        const res = await getCharacters(selectedChapter.id);
+
+        if (res.ok) setCharacters(res.result);
+        else alert("Failed to refresh chars: " + res.error);
+    }
+
+    function handleCreateCharacter() {
+        setModalContent(
+            <CreateCharacterModal onCreate={
+                async () => await refreshCharacters()
+            }/>
+        )
+    }
+
+    function handleEditCharacter(character: Character) {
+        setModalContent(
+            <EditCharacterModal character={character} onUpdate={
+                async () => await refreshCharacters()
+            }/>
+        )
+    }
+
+    return (
+        <div className="w-100 h-100 d-flex flex-column">
+            <div className="d-flex justify-content-between align-items-center bg-dark text-white p-2 my-2">
+                <div className="fw-bold">
+                    {!selectedNovel || !selectedChapter
+                        ? "No Chapter Selected"
+                        : `${selectedNovel.title}: ${selectedChapter.title} - Characters`}
+                </div>
+
+                <button
+                    className="btn btn-sm btn-success"
+                    onClick={handleCreateCharacter}
+                    disabled={!selectedNovel || !selectedChapter}
+                >
+                    +
+                </button>
+            </div>
+
+            <div className="flex-grow-1 overflow-auto p-3">
+                {characters.map((character) => (
+                    <Item
+                        key={character.id}
+                        title={character.common_name}
+                        onClick={() => alert(`Selected ${character.common_name}`)}
+                        onEdit={() => handleEditCharacter(character)}
+                        onDelete={() => 
+                            deleteCharacter(character.id).then((res) => {
+                                if (res.ok) refreshCharacters();
+                                else alert("Failed to delete character: " + res.error);
+                            })
+                        }
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+type ItemProps = {
+    title: string;
+    onClick: () => void;
+    onEdit: () => void;
+    onDelete: () => void;
 };
 
-function ChapterItem({ chapter, onClick, onEdit, onDelete }: ChapterItemProps) {
+function Item({ title, onClick, onEdit, onDelete }: ItemProps) {
     return (
         <div
             className="border rounded p-2 mb-2 d-flex justify-content-between align-items-center"
             onClick={onClick}
             style={{ cursor: "pointer" }}
         >
-            <div>
-                <div className="fw-bold">
-                    {chapter.chapter_number}. {chapter.title}
-                </div>
+            <div className="fw-bold">
+                {title}
             </div>
 
             <div className="d-flex gap-2">
