@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 import { useContext, useRef, useState } from "react";
-import { CreateNovelModal, LoadNovelModal } from "../modal/NovelModal";
+import { CreateNovelModal, EditNovelModal, LoadNovelModal } from "../modal/NovelModal";
 import { AppContext } from "../../AppContext";
 import { useOutsideClick } from "../../hooks/useOutsideClick";
 
-export function NovelMenu({ open, onNew, onOpen }: { open: boolean, onNew: () => void, onOpen: () => void }) {
+export function NovelMenu({ open, onNew, onOpen, onEdit}: { open: boolean, onNew: () => void, onOpen: () => void, onEdit: () => void }) {
   if (!open) return null;
 
   return (
@@ -13,7 +13,7 @@ export function NovelMenu({ open, onNew, onOpen }: { open: boolean, onNew: () =>
             style={{ top: "100%", left: 0, marginTop: "5px", minWidth: "150px", padding: "5px 5px", zIndex: 1000 }}>
             <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={onNew}>Create New Novel</div>
             <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={onOpen}>Load Novel</div>
-            <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={() => alert("Feature not implemented yet")}>Delete Novel</div>
+            <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={onEdit}>Edit Novel</div>
         </div>
   );
 }
@@ -48,6 +48,7 @@ export function Navbar() {
                             open={NovelActive}
                             onNew={() => setModalContent(<CreateNovelModal />)}
                             onOpen={() => setModalContent(<LoadNovelModal />)}
+                            onEdit={() => setModalContent(<EditNovelModal />)}
                         />
                     </div>
 

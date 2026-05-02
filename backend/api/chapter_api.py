@@ -19,6 +19,7 @@ def create(data: ChapterCreate, db: Connection = Depends(get_connection)):
     chapter_id = create_chapter(db, data.novel_id, data.chapter_number, data.title)
     return get_chapter(db, chapter_id=chapter_id)
 
+# REVIEW: Should this endpoint be sing append/{novel_id} instead?
 @router.post("/append", response_model=ChapterResponse)
 def append(data: ChapterAppend, db: Connection = Depends(get_connection)):
     chapter_id = append_chapter(db, data.novel_id, data.title)

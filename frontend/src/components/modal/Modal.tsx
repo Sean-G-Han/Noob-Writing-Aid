@@ -22,7 +22,7 @@ export function Modal() {
 
             <div
                 className="position-fixed top-50 start-50 translate-middle bg-white rounded shadow p-4"
-                style={{ zIndex: 1050, minWidth: "500px" }}
+                style={{ zIndex: 1050, minWidth: "550px" }}
                 ref={menuRef}
             >
                 <div className="d-flex justify-content-end my-2">

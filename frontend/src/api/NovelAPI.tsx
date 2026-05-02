@@ -30,7 +30,7 @@ export function getNovels() {
     );
 }
 
-export function updateNovel(id: number, data: Partial<CreateNovelRequest>) {
+export function updateNovel(id: number, data: CreateNovelRequest) {
     return apiRequest<NovelResponse>(
         `/novels/${id}`,
         "PUT",

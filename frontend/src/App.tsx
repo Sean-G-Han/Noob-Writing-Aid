@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Navbar } from "./components/navbar/Navbar";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { Modal } from "./components/modal/Modal";
 import { AppContext } from "./AppContext";
 import { Chapter } from "./components/page/Chapter";
@@ -28,7 +28,6 @@ function App() {
 
                     <div className="flex-grow-1">
                         <Routes>
-                            <Route path="/" element={<Main />} />
                             <Route path="/chapter" element={<Chapter />} />
                             <Route path="/character" element={<Character />} />
                             <Route path="/editor" element={<Editor />} />
@@ -38,17 +37,6 @@ function App() {
                 </div>
             </Router>
         </AppContext.Provider>
-    );
-}
-
-
-
-function Main() {
-    const {selectedNovel} = useContext(AppContext);
-    return (
-        <div className="w-100 h-100 p-3">
-            <h1>Novel {selectedNovel?.title} </h1>
-        </div>
     );
 }
 
