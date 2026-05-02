@@ -9,9 +9,6 @@ export type BooleanResponse = {
     ok: boolean;
 };
 
-// Note repeated Novel and NovelResponse types. 
-// Novel is used for frontend state management, while NovelResponse is used for API responses.
-
 export function createNovel(data: CreateNovelRequest) {
     return apiRequest<Novel>(
         "/novels/",

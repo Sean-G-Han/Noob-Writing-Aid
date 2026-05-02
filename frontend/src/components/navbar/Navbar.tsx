@@ -13,7 +13,7 @@ export function NovelMenu({ open, onNew, onOpen, onEdit}: { open: boolean, onNew
         <div
             className="position-absolute bg-white text-dark border rounded shadow"
             style={{ top: "100%", left: 0, marginTop: "5px", minWidth: "150px", padding: "5px 5px", zIndex: 1000 }}>
-            <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={onNew}>Create New Novel</div>
+            <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={onNew}> New Novel</div>
             <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={onOpen}>Load Novel</div>
             <div className="dropdown-item" style={{ cursor: "pointer" }} onClick={onEdit}>Edit Novel</div>
         </div>
@@ -22,7 +22,7 @@ export function NovelMenu({ open, onNew, onOpen, onEdit}: { open: boolean, onNew
 
 export function Navbar() {
     const [NovelActive, setNovelActive] = useState(false);
-    const { setModalContent, selectedNovel } = useContext(AppContext);
+    const { setModalContent, selectedNovel, selectedChapter} = useContext(AppContext);
 
     function handleNovelClick() {
         setNovelActive(true);
@@ -34,6 +34,26 @@ export function Navbar() {
         setNovelActive(false);
     });
 
+    const label = (() => {
+        if (!selectedNovel) return "File/Project";
+
+        const shortNovel =
+            selectedNovel.title.length > 10
+                ? selectedNovel.title.slice(0, 7) + "..."
+                : selectedNovel.title;
+
+        if (!selectedChapter) {
+            return `Novel: ${shortNovel}`;
+        }
+
+        const shortChapter =
+            selectedChapter.title.length > 10
+                ? selectedChapter.title.slice(0, 7) + "..."
+                : selectedChapter.title;
+
+        return `Novel: ${shortNovel} → ${shortChapter}`;
+    })();
+
     return (
         <nav className="navbar navbar-dark bg-dark py-2">
             <div className="container-fluid">
@@ -43,12 +63,7 @@ export function Navbar() {
                             className="btn btn-outline-light btn-sm"
                             onClick={handleNovelClick}
                         >
-                            {!selectedNovel
-                            ? "Novel"
-                            : selectedNovel.title.length > 10
-                                ? "Novel: " + selectedNovel.title.slice(0, 7) + "..."
-                                : "Novel: " + selectedNovel.title
-                            }
+                            {label}
                         </button>
 
                         <NovelMenu
@@ -60,7 +75,6 @@ export function Navbar() {
                     </div>
 
                     <Link className="nav-link text-white" to="/chapter">Chapter</Link>
-                    <Link className="nav-link text-white" to="/character">Character</Link>
                     <Link className="nav-link text-white" to="/editor">Editor</Link>
                 </div>
 

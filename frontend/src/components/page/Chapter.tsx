@@ -23,8 +23,7 @@ export function ChapterPage() {
 }
 
 export function ChapterView() {
-    const { selectedNovel, setSelectedChapter, setModalContent } =
-        useContext(AppContext);
+    const { selectedNovel, setSelectedChapter, setModalContent } = useContext(AppContext);
 
     const [chapters, setChapters] = useState<Chapter[]>([]);
 

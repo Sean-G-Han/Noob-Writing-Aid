@@ -5,6 +5,7 @@ import { Modal } from "./components/modal/Modal";
 import { AppContext } from "./AppContext";
 import type { Chapter, Novel } from "./types";
 import { ChapterPage } from "./components/page/Chapter";
+import { WritingEditor } from "./components/page/Editor";
 
 function App() {
     const [modalContent, setModalContent] = useState<React.ReactNode>(null);
@@ -33,8 +34,7 @@ function App() {
                         <Routes>
                             <Route path="/" element={<ChapterPage />} />
                             <Route path="/chapter" element={<ChapterPage />} />
-                            <Route path="/character" element={<CharacterPage />} />
-                            <Route path="/editor" element={<EditorPage />} />
+                            <Route path="/editor" element={<WritingEditor />} />
                         </Routes>
                     </div>
                     <Modal />
@@ -44,19 +44,4 @@ function App() {
     );
 }
 
-function CharacterPage() {
-  return (
-        <div className="w-100 h-100 p-3">
-            <h1>Character Page</h1>
-        </div>
-  );
-}
-
-function EditorPage() {
-  return (
-        <div className="w-100 h-100 p-3">
-            <h1>Editor Page</h1>
-        </div>
-  );
-}
 export default App;

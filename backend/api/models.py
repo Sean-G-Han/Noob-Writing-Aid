@@ -42,7 +42,6 @@ class ChapterResponse(BaseModel):
     hash: str | None
 
 class ChapterSave(BaseModel):
-    chapter_id: int
     content: str
     base_dir: str | None = None
 
