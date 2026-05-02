@@ -8,10 +8,7 @@ type EditCharacterModalProps = {
     onUpdate: (updated: Character) => void;
 };
 
-export function EditCharacterModal({
-    character,
-    onUpdate,
-}: EditCharacterModalProps) {
+export function EditCharacterModal({character, onUpdate }: EditCharacterModalProps) {
     const { closeModal } = useContext(AppContext);
     const [error, setError] = useState("");
 

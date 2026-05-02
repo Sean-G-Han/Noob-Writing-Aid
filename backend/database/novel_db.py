@@ -57,6 +57,12 @@ def delete_novel(conn: Connection, novel_id: int) -> bool:
     try:
         with conn:
             cursor = conn.cursor()
+            cursor.execute("""
+                DELETE FROM chapter_to_character
+                WHERE chapter_id IN (
+                    SELECT id FROM chapters WHERE novel_id = ?
+                )
+            """, (novel_id,))
             cursor.execute("DELETE FROM novels WHERE id = ?", (novel_id,))
             conn.commit()
             return cursor.rowcount > 0

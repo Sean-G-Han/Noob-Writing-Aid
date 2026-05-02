@@ -28,6 +28,7 @@ export function CreateCharacterModal({ onCreate }: CreateCharacterModalProps) {
         }
 
         const data: CreateCharacterRequest = {
+            novel_id: selectedNovel.id,
             common_name: commonName,
             description: description,
             adjectives: adjectives

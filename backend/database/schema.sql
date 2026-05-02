@@ -21,13 +21,14 @@ CREATE TABLE IF NOT EXISTS chapter_to_character (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     chapter_id INTEGER NOT NULL,
     character_id INTEGER NOT NULL,
-    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
-    FOREIGN KEY (character_id) REFERENCES characters(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id),
+    FOREIGN KEY (character_id) REFERENCES characters(id),
     UNIQUE (chapter_id, character_id)
 );
 
 CREATE TABLE IF NOT EXISTS characters (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    novel_id INTEGER NOT NULL,
     common_name TEXT NOT NULL,
     description TEXT DEFAULT ''
 );

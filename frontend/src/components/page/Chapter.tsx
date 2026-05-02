@@ -7,6 +7,7 @@ import { CreateChapterModal } from "../modal/chapter/CreateChapterModal";
 import { EditChapterModal } from "../modal/chapter/EditChapterModal";
 import { CreateCharacterModal } from "../modal/character/CreateCharacterModal";
 import { EditCharacterModal } from "../modal/character/EditCharacterModal";
+import { LinkCharacterModal } from "../modal/character/LinkCharacterModal";
 
 export function ChapterPage() {
     return (
@@ -80,7 +81,7 @@ export function ChapterView() {
                     onClick={handleCreateChapter}
                     disabled={!selectedNovel}
                 >
-                    +
+                    Create
                 </button>
             </div>
 
@@ -128,6 +129,14 @@ export function CharacterView() {
         else alert("Failed to refresh chars: " + res.error);
     }
 
+    function handleLinkCharacter() {
+        setModalContent(
+            <LinkCharacterModal onUpdate={
+                async () => await refreshCharacters()
+            }/>
+        )
+    }
+
     function handleCreateCharacter() {
         setModalContent(
             <CreateCharacterModal onCreate={
@@ -152,14 +161,23 @@ export function CharacterView() {
                         ? "No Chapter Selected"
                         : `${selectedNovel.title}: ${selectedChapter.title} - Characters`}
                 </div>
+                <div className="d-flex gap-2">
+                    <button
+                        className="btn btn-sm btn-secondary"
+                        onClick={handleLinkCharacter}
+                        disabled={!selectedNovel || !selectedChapter}
+                    >
+                        Link
+                    </button>
 
-                <button
-                    className="btn btn-sm btn-success"
-                    onClick={handleCreateCharacter}
-                    disabled={!selectedNovel || !selectedChapter}
-                >
-                    +
-                </button>
+                    <button
+                        className="btn btn-sm btn-success"
+                        onClick={handleCreateCharacter}
+                        disabled={!selectedNovel || !selectedChapter}
+                    >
+                        Create
+                    </button>
+                </div>
             </div>
 
             <div className="flex-grow-1 overflow-auto p-3">

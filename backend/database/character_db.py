@@ -11,6 +11,7 @@ def _character_row_to_dict(row) -> dict:
     }
 
 def create_character(conn: Connection, 
+                     novel_id: int,
                      common_name: str,
                      adjectives: list[str] | None = None,
                      description: str = "",
@@ -21,9 +22,9 @@ def create_character(conn: Connection,
         with conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO characters (common_name, description)
-                VALUES (?, ?)
-            """, (common_name, description))
+                INSERT INTO characters (novel_id, common_name, description)
+                VALUES (?, ?, ?)
+            """, (novel_id, common_name, description))
 
             if adjectives:
                 for adjective in adjectives:
@@ -36,7 +37,7 @@ def create_character(conn: Connection,
                     _add_character_alt_name(conn, cursor.lastrowid, alternative_name)
             if chapters:
                 for chapter_id in chapters:
-                    _link_character_to_chapter(conn, cursor.lastrowid, chapter_id)
+                    link_character_to_chapter(conn, cursor.lastrowid, chapter_id)
 
             conn.commit()
 
@@ -89,6 +90,28 @@ def get_characters_by_chapter(conn: Connection, chapter_id: int) -> list[dict]:
     except sqlite3.Error as e:
         raise DBError(f"Failed to get characters by chapter: {str(e)}") from e
 
+def get_characters_by_novel(conn: Connection, novel_id: int) -> list[dict]:
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT * FROM characters
+                WHERE novel_id = ?
+            """, (novel_id,))
+            rows = cursor.fetchall()
+
+            characters = []
+            for row in rows:
+                data = _character_row_to_dict(row)
+                data["adjectives"] = _get_character_adjectives(conn, data["id"])
+                data["pronouns"] = _get_character_pronouns(conn, data["id"])
+                data["alternative_names"] = _get_character_alt_names(conn, data["id"])
+                characters.append(data)
+
+            return characters
+    except sqlite3.Error as e:
+        raise DBError(f"Failed to get characters by novel: {str(e)}") from e    
+
 def update_character(conn: Connection, character_id: int, 
                      common_name: str,
                      adjectives: list[str] | None = None,
@@ -138,7 +161,7 @@ def update_character(conn: Connection, character_id: int,
             if chapters is not None:
                 _unlink_all_character_from_chapter(conn, character_id)
                 for ch_id in chapters:
-                    _link_character_to_chapter(conn, character_id, ch_id)
+                    link_character_to_chapter(conn, character_id, ch_id)
 
             return cursor.rowcount > 0
     except sqlite3.Error as e:
@@ -149,6 +172,10 @@ def delete_character(conn: Connection, character_id: int) -> bool:
         with conn:
             cursor = conn.cursor()
             cursor.execute("""
+                DELETE FROM chapter_to_character
+                WHERE character_id = ?
+            """, (character_id,))
+            cursor.execute("""
                 DELETE FROM characters
                 WHERE id = ?
             """, (character_id,))
@@ -156,7 +183,7 @@ def delete_character(conn: Connection, character_id: int) -> bool:
     except sqlite3.Error as e:
         raise DBError(f"Failed to delete character: {str(e)}") from e
 
-def _link_character_to_chapter(conn: Connection, character_id: int, chapter_id: int) -> int:
+def link_character_to_chapter(conn: Connection, character_id: int, chapter_id: int) -> int:
     try:
         with conn:
             cursor = conn.cursor()
@@ -168,14 +195,17 @@ def _link_character_to_chapter(conn: Connection, character_id: int, chapter_id: 
     except sqlite3.Error as e:
         raise DBError(f"Failed to link character to chapter: {str(e)}") from e
 
-# def _unlink_character_from_chapter(conn: Connection, character_id: int, chapter_id: int) -> bool:
-#     with conn:
-#         cursor = conn.cursor()
-#         cursor.execute("""
-#             DELETE FROM chapter_to_character
-#             WHERE character_id = ? AND chapter_id = ?
-#         """, (character_id, chapter_id))
-#         return cursor.rowcount > 0
+def unlink_character_from_chapter(conn: Connection, character_id: int, chapter_id: int) -> bool:
+    try:
+        with conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                DELETE FROM chapter_to_character
+                WHERE character_id = ? AND chapter_id = ?
+            """, (character_id, chapter_id))
+            return cursor.rowcount > 0
+    except sqlite3.Error as e:
+        raise DBError(f"Failed to unlink character from chapter: {str(e)}") from e
 
 def _unlink_all_character_from_chapter(conn: Connection, character_id: int) -> bool:
     try:
