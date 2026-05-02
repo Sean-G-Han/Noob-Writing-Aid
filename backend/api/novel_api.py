@@ -31,7 +31,7 @@ def read_one(novel_id: int, db: Connection = Depends(get_connection)):
         raise HTTPException(status_code=404, detail="Novel not found")
     return novel
 
-@router.put("/{novel_id}", response_model=NovelResponse)
+@router.put("/{novel_id}", response_model=BooleanResponse)
 def update(novel_id: int, data: NovelUpdate, db: Connection = Depends(get_connection)):
     success = update_novel(db, novel_id, data.title)
     if not success:

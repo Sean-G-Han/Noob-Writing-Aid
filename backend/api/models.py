@@ -24,6 +24,10 @@ class ChapterCreate(BaseModel):
     chapter_number: int
     title: str
 
+class ChapterAppend(BaseModel):
+    novel_id: int
+    title: str
+
 class ChapterUpdate(BaseModel):
     chapter_number: int | None
     title: str | None
@@ -38,7 +42,6 @@ class ChapterResponse(BaseModel):
     hash: str | None
 
 class ChapterSave(BaseModel):
-    chapter_id: int
     content: str
     base_dir: str | None = None
 
@@ -50,6 +53,7 @@ class ChapterLoadResponse(BaseModel):
     content: str
 
 class CharacterCreate(BaseModel):
+    novel_id: int
     common_name: str
     description: str = ""
     adjectives: list[str] | None = None
@@ -64,6 +68,10 @@ class CharacterUpdate(BaseModel):
     pronouns: list[str] | None = None
     alternative_names: list[str] | None = None
     chapters: list[int] | None = None
+
+class CharacterLink(BaseModel):
+    chapter_id: int
+    character_id: int
 
 class CharacterResponse(BaseModel):
     id: int
